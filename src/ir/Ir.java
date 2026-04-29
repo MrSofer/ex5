@@ -73,4 +73,9 @@ public class Ir
 		}
 		return instance;
 	}
+	public IrCommandList getCommands() {
+		// This packages your head and tail into a single list node
+		// that the RegisterAllocator can easily traverse!
+		return new IrCommandList(this.head, this.tail);
+	}
 }

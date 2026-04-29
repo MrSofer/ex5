@@ -1,9 +1,12 @@
 import java.io.*;
 import java.io.PrintWriter;
+
+//import java_cup.Lexer;
 import java_cup.runtime.Symbol;
 import ast.*;
 import ir.*;
 import mips.*;
+import regalloc.RegisterAllocator;
 
 public class Main
 {
@@ -59,6 +62,9 @@ public class Main
 			/* [8] Ir the AST ... */
 			/**********************/
 			ast.irMe();
+
+			/*Register Allocation*/
+			RegisterAllocator allocator = new RegisterAllocator(Ir.getInstance().getCommands());
 
 			/***********************/
 			/* [9] MIPS the Ir ... */

@@ -20,7 +20,7 @@ public class IrCommandLabel extends IrCommand
 	{
 		this.labelName = labelName;
 	}
-	
+	public String getLabelName(){return this.labelName;}
 	/***************/
 	/* MIPS me !!! */
 	/***************/
