@@ -12,6 +12,7 @@ package ir;
 /*******************/
 import temp.*;
 import mips.*;
+import java.util.*;
 
 public class IrCommandBinopMulIntegers extends IrCommand
 {
@@ -24,6 +25,13 @@ public class IrCommandBinopMulIntegers extends IrCommand
 		this.dst = dst;
 		this.t1 = t1;
 		this.t2 = t2;
+	}
+	public List<Temp> getUsedTemps() {
+		return Arrays.asList(t1, t2);
+	}
+
+	public Temp getDefinedTemp() {
+		return dst;
 	}
 	/***************/
 	/* MIPS me !!! */

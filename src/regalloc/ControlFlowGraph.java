@@ -58,7 +58,36 @@ public class ControlFlowGraph {
     }
 
     public Set<Temp> LivenessAnalysis(){
-        return null;
+        CommandNode currNode = null;
+        Queue<CommandNode> WorkList = new LinkedList<>();
+        WorkList.add(this.last);
+        while (!WorkList.isEmpty()){
+            currNode = WorkList.remove();
+            //1. receive and unionize all successors.in to curr.out
+            for (CommandNode successor: currNode.successors ){
+                currNode.out.addAll(successor.in);
+            }
+            currNode.in = new HashSet<>(currNode.out);
+            //2. apply in/out rule
+            switch (currNode.nodeCommand){
+                case IrCommandBinopMulIntegers irMul -> {
+                    currNode.in.remove(irMul.getDefinedTemp());
+                    currNode.in.addAll(irMul.getUsedTemps());
+                }
+                case IrCommandBinopAddIntegers irAdd -> {
+                    currNode.in.remove(irAdd.getDefinedTemp());
+                    currNode.in.addAll(irAdd.getUsedTemps());
+                }
+                case IrCommandJumpIfEqToZero irJump -> {
+                    currNode.in.add(irJump.getT());
+                }
+
+                default -> {continue;}
+            }
+            currNode = WorkList.remove();
+        }
+
+        return (currNode != null) ? currNode.in : new HashSet<Temp>();
     }
 
 }

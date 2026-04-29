@@ -13,6 +13,9 @@ package ir;
 import temp.*;
 import mips.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class IrCommandBinopAddIntegers extends IrCommand
 {
 	public Temp t1;
@@ -24,6 +27,13 @@ public class IrCommandBinopAddIntegers extends IrCommand
 		this.dst = dst;
 		this.t1 = t1;
 		this.t2 = t2;
+	}
+	public List<Temp> getUsedTemps() {
+		return Arrays.asList(t1, t2);
+	}
+
+	public Temp getDefinedTemp() {
+		return dst;
 	}
 	/***************/
 	/* MIPS me !!! */

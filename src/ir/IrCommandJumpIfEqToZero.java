@@ -24,6 +24,7 @@ public class IrCommandJumpIfEqToZero extends IrCommand
 		this.labelName = labelName;
 	}
 	public String getLabelName(){return this.labelName;}
+	public Temp getT(){return this.t;}
 
 
 	/***************/
