@@ -6,6 +6,7 @@ import temp.Temp;
 import java.util.*;
 
 public class ControlFlowGraph {
+    List<CommandNode> allNodes;
     CommandNode first,last;
 
     public void build(IrCommandList ir){
@@ -55,39 +56,50 @@ public class ControlFlowGraph {
                 }
             }
         }
+
+        this.allNodes = allNodes;
     }
 
-    public Set<Temp> LivenessAnalysis(){
-        CommandNode currNode = null;
-        Queue<CommandNode> WorkList = new LinkedList<>();
-        WorkList.add(this.last);
-        while (!WorkList.isEmpty()){
-            currNode = WorkList.remove();
-            //1. receive and unionize all successors.in to curr.out
-            for (CommandNode successor: currNode.successors ){
+    public Set<Temp> LivenessAnalysis() {
+
+        // 1. Initialize with ALL nodes (you need to make allNodes accessible!)
+        Queue<CommandNode> WorkList = new LinkedList<>(this.allNodes);
+
+        while (!WorkList.isEmpty()) {
+            CommandNode currNode = WorkList.poll();
+
+            // 2. CAPTURE THE OLD 'IN' STATE BEFORE TOUCHING ANYTHING
+            Set<Temp> oldIn = new HashSet<>(currNode.in);
+
+            // 3. Calculate OUT
+            for (CommandNode successor : currNode.successors) {
                 currNode.out.addAll(successor.in);
             }
-            currNode.in = new HashSet<>(currNode.out);
-            //2. apply in/out rule
-            switch (currNode.nodeCommand){
-                case IrCommandBinopMulIntegers irMul -> {
-                    currNode.in.remove(irMul.getDefinedTemp());
-                    currNode.in.addAll(irMul.getUsedTemps());
-                }
-                case IrCommandBinopAddIntegers irAdd -> {
-                    currNode.in.remove(irAdd.getDefinedTemp());
-                    currNode.in.addAll(irAdd.getUsedTemps());
-                }
-                case IrCommandJumpIfEqToZero irJump -> {
-                    currNode.in.add(irJump.getT());
-                }
 
-                default -> {continue;}
+            // 4. Calculate IN: IN = (OUT - DEF) + USE
+            currNode.in = new HashSet<>(currNode.out); // Reset IN to be exactly OUT
+
+            Temp def = currNode.nodeCommand.getDefinedTemp();
+            if (def != null) {
+                currNode.in.remove(def);
             }
-            currNode = WorkList.remove();
-        }
 
-        return (currNode != null) ? currNode.in : new HashSet<Temp>();
+            List<Temp> uses = currNode.nodeCommand.getUsedTemps();
+            if (uses != null) {
+                currNode.in.addAll(uses);
+            }
+
+            // 5. THE TRIGGER: Did 'IN' actually change?
+            if (!currNode.in.equals(oldIn)) {
+                // Only if it grew do we wake up the predecessors!
+                for (CommandNode pred : currNode.predecessors) {
+                    if (!WorkList.contains(pred)) {
+                        WorkList.add(pred);
+                    }
+                }
+            }
+        }
+        return (this.first != null) ? this.first.in : new HashSet<>();
     }
 
 }
