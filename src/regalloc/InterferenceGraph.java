@@ -39,4 +39,56 @@ public class InterferenceGraph {
             }
         }
     }
+
+    public boolean ColorGraph(){
+        Stack<InterferenceNode> coloringStack = new Stack<>();
+
+        List<InterferenceNode> activeNodes = new ArrayList<>(allNodes.values());
+
+        while (!activeNodes.isEmpty()) {
+            InterferenceNode nodeToRemove = null;
+
+            for (InterferenceNode node : activeNodes) {
+                if (node.edges.size() < 10) {
+                    nodeToRemove = node;
+                    break; // Found one! Stop hunting.
+                }
+            }
+
+            if (nodeToRemove == null) {
+                return false;
+            }
+
+            activeNodes.remove(nodeToRemove);
+            coloringStack.push(nodeToRemove);
+
+            for (InterferenceNode neighbor : nodeToRemove.edges) {
+                neighbor.removeEdge(nodeToRemove);
+            }
+        }
+
+        while (! coloringStack.isEmpty()) {
+            InterferenceNode poppedNode = coloringStack.pop();
+
+            Set<Integer> used = new HashSet<>();
+            for (InterferenceNode neighbor : poppedNode.edges){
+                if (neighbor.assignedColor != -1){
+                    used.add(neighbor.assignedColor);
+                }
+            }
+
+            for (int color = 0 ; color < 10 ; color++){
+                if (!used.contains(color)){
+                    poppedNode.assignedColor = color;
+                    break;
+                }
+            }
+            for (InterferenceNode neighbor : poppedNode.edges) {
+                neighbor.edges.add(poppedNode);
+            }
+        }
+
+        return true;
+    }
+
 }

@@ -22,9 +22,9 @@ public class RegisterAllocator {
         // 2. Perform Liveness Analysis (IN and OUT sets)
             Set<Temp> LivenessResults = CFG.LivenessAnalysis();
         // 3. Build Interference Graph
-
+            InterferenceGraph interferenceGraph = new InterferenceGraph(CFG);
         // 4. Simplify and Color the graph (using $t0 - $t9)
-
+            boolean didColoringSucceed = interferenceGraph.ColorGraph();
         // 5. Update physicalRegister field in Temp objects
 
         return true;
