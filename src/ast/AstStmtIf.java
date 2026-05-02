@@ -75,7 +75,6 @@ public class AstStmtIf extends AstStmt
 		/*************************************/
 		/* AST NODE TYPE = AST SUBSCRIPT VAR */
 		/*************************************/
-		System.out.print("AST NODE STMT IF\n");
 
 		/**************************************/
 		/* RECURSIVELY PRINT left + right ... */
@@ -104,7 +103,6 @@ public class AstStmtIf extends AstStmt
 		/****************************/
 		if (cond.semantMe() != TypeInt.getInstance())
 		{
-			System.out.format(">> ERROR [%d:%d] condition inside IF is not integral\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		

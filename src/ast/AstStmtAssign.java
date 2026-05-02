@@ -24,11 +24,6 @@ public class AstStmtAssign extends AstStmt
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
-
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
 		/*******************************/
@@ -43,11 +38,6 @@ public class AstStmtAssign extends AstStmt
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
 
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
@@ -65,7 +55,6 @@ public class AstStmtAssign extends AstStmt
 		/********************************************/
 		/* AST NODE TYPE = AST ASSIGNMENT STATEMENT */
 		/********************************************/
-		System.out.print("AST NODE ASSIGN STMT\n");
 
 		/***********************************/
 		/* RECURSIVELY PRINT VAR + EXP ... */
@@ -145,8 +134,6 @@ public class AstStmtAssign extends AstStmt
 
 		if (!typesMatch)
 		{
-			System.out.format(">> ERROR [%d:%d] type mismatch for var of type %s := exp of type %s\n",line,line,
-					t1 != null ? t1.name : "null", t2 != null ? t2.name : "null");
 			throw new Error("ERROR(" + line + ")");
 		}
 		return null;

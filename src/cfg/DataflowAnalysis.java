@@ -41,7 +41,6 @@ public class DataflowAnalysis
 	{
 		uninitializedVars = new HashSet<>();
 		
-		System.out.println("\n========== DATAFLOW ANALYSIS START (Chaotic Iteration) ==========");
 		
 		// Initialize data for all blocks to bottom (empty = nothing initialized)
 		for (BasicBlock block : cfg.getBlocks()) {
@@ -51,7 +50,6 @@ public class DataflowAnalysis
 			initializedTempsAtExit.put(block, new HashSet<>());
 		}
 		
-		System.out.println("Total blocks: " + cfg.getBlocks().size());
 		
 		// Chaotic iteration: keep iterating until fixed point
 		boolean changed = true;
@@ -60,11 +58,9 @@ public class DataflowAnalysis
 		while (changed) {
 			changed = false;
 			iteration++;
-			System.out.println("\n========== ITERATION " + iteration + " ==========");
 			
 			// Process all blocks in each iteration
 			for (BasicBlock block : cfg.getBlocks()) {
-				System.out.println("\nProcessing " + block);
 				
 				// Compute initialization status at block entry from predecessors
 				Set<String> varsAtEntry = new HashSet<>();
@@ -74,13 +70,11 @@ public class DataflowAnalysis
 					// Entry block starts with nothing initialized
 					varsAtEntry = new HashSet<>();
 					tempsAtEntry = new HashSet<>();
-					System.out.println("  Entry block - nothing initialized at start");
 				} else {
 					// Meet operation: A variable is initialized at block entry if it's
 					// initialized at the exit of ALL predecessors (intersection)
 					// Use the exit values from the PREVIOUS iteration (cached)
 					// Special handling for back edges in first iteration: skip them if unprocessed
-					System.out.println("  Predecessors: " + block.getPredecessors().size());
 					boolean firstPred = true;
 					int processedPredCount = 0;
 					for (BasicBlock pred : block.getPredecessors()) {
@@ -97,11 +91,9 @@ public class DataflowAnalysis
 						boolean skipPred = (iteration == 1 && isBackEdge && appearsUnprocessed);
 						
 						if (skipPred) {
-							System.out.println("    From " + pred + ": SKIPPING (back edge in first iteration, appears unprocessed)");
 							continue;
 						}
 						
-						System.out.println("    From " + pred + ": vars=" + predVars + ", temps=" + predTemps.size());
 						
 						if (firstPred) {
 							varsAtEntry.addAll(predVars);
@@ -119,10 +111,8 @@ public class DataflowAnalysis
 					// If all predecessors were skipped, varsAtEntry and tempsAtEntry remain empty
 					// This is correct: with no information from predecessors, assume nothing initialized
 					if (processedPredCount == 0) {
-						System.out.println("  Note: All predecessors skipped, using empty entry state");
 					}
 					
-					System.out.println("  Block entry after meet: vars=" + varsAtEntry);
 				}
 				
 				// Check if entry state changed
@@ -130,12 +120,10 @@ public class DataflowAnalysis
 				Set<Temp> oldTempsAtEntry = initializedTempsAtEntry.get(block);
 				
 				if (!varsAtEntry.equals(oldVarsAtEntry) || !tempsAtEntry.equals(oldTempsAtEntry)) {
-					System.out.println("  Entry state CHANGED for " + block);
 					initializedVarsAtEntry.put(block, varsAtEntry);
 					initializedTempsAtEntry.put(block, tempsAtEntry);
 					changed = true; // Need another iteration
 				} else {
-					System.out.println("  No change in entry state for " + block);
 				}
 				
 				// Compute exit state for this block
@@ -152,21 +140,15 @@ public class DataflowAnalysis
 			}
 			
 			if (!changed) {
-				System.out.println("\n========== FIXED POINT REACHED after " + iteration + " iterations ==========");
 			}
 		}
 		
-		System.out.println("\n========== ANALYZING FOR UNINITIALIZED USES ==========");
 		
 		// Now analyze each block to find uninitialized uses
 		for (BasicBlock block : cfg.getBlocks()) {
-			System.out.println("\nAnalyzing block " + block + " for uninitialized uses:");
 			analyzeBlockForUninitializedUses(block);
 		}
 		
-		System.out.println("\n========== DATAFLOW ANALYSIS COMPLETE ==========");
-		System.out.println("Uninitialized variables: " + uninitializedVars);
-		System.out.println("==============================================\n");
 		
 		return uninitializedVars;
 	}
@@ -179,15 +161,12 @@ public class DataflowAnalysis
 		Set<String> initialized = new HashSet<>(initializedVarsAtEntry.get(block));
 		Set<Temp> initializedTemps = new HashSet<>(initializedTempsAtEntry.get(block));
 		
-		System.out.println("  Entry: initialized vars=" + initialized);
 		
 		for (IrCommand cmd : block.getInstructions()) {
 			// Check for uninitialized use before processing
 			if (cmd instanceof IrCommandLoad) {
 				IrCommandLoad loadCmd = (IrCommandLoad) cmd;
-				System.out.println("    Load(" + loadCmd.getVarName() + ") - initialized=" + initialized.contains(loadCmd.getVarName()));
 				if (!initialized.contains(loadCmd.getVarName())) {
-					System.out.println("      -> UNINITIALIZED USE DETECTED: " + loadCmd.getVarName());
 					uninitializedVars.add(loadCmd.getVarName());
 				}
 			}
@@ -196,7 +175,6 @@ public class DataflowAnalysis
 			processCommandForInitialization(cmd, initialized, initializedTemps);
 		}
 		
-		System.out.println("  Exit: initialized vars=" + initialized);
 	}
 	
 	/**
@@ -209,9 +187,7 @@ public class DataflowAnalysis
 			// If loading from initialized var, temp becomes initialized
 			if (initialized.contains(loadCmd.getVarName())) {
 				initializedTemps.add(loadCmd.getDst());
-				System.out.println("      Temp " + loadCmd.getDst().getSerialNumber() + " <- initialized from " + loadCmd.getVarName());
 			} else {
-				System.out.println("      Temp " + loadCmd.getDst().getSerialNumber() + " <- UNINITIALIZED from " + loadCmd.getVarName());
 			}
 		}
 		else if (cmd instanceof IrCommandStore) {
@@ -219,24 +195,20 @@ public class DataflowAnalysis
 			// Variable becomes initialized only if source temp is initialized
 			if (initializedTemps.contains(storeCmd.getSrc())) {
 				initialized.add(storeCmd.getVarName());
-				System.out.println("      " + storeCmd.getVarName() + " <- initialized from Temp " + storeCmd.getSrc().getSerialNumber());
 			} else {
 				// If storing uninitialized temp, variable is not initialized
 				initialized.remove(storeCmd.getVarName());
-				System.out.println("      " + storeCmd.getVarName() + " <- UNINITIALIZED from Temp " + storeCmd.getSrc().getSerialNumber());
 			}
 		}
 		else if (cmd instanceof IrCommandAllocate) {
 			IrCommandAllocate allocCmd = (IrCommandAllocate) cmd;
 			// Allocate resets initialization status
 			initialized.remove(allocCmd.getVarName());
-			System.out.println("      Allocate(" + allocCmd.getVarName() + ") - reset initialization");
 		}
 		else if (cmd instanceof IRcommandConstInt) {
 			IRcommandConstInt constCmd = (IRcommandConstInt) cmd;
 			// Constants are always initialized
 			initializedTemps.add(constCmd.getTemp());
-			System.out.println("      Temp " + constCmd.getTemp().getSerialNumber() + " <- const(" + constCmd.getValue() + ") - initialized");
 		}
 		// Binary operations
 		else if (cmd instanceof IrCommandBinopAddIntegers) {

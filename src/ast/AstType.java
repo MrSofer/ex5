@@ -15,11 +15,6 @@ public class AstType extends AstNode
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== type\n");
-
 		/*******************************/
 		/* COPY INPUT DATA MEMBERS ... */
 		/*******************************/
@@ -45,7 +40,6 @@ public class AstType extends AstNode
 		/*************************************/
 		/* AST NODE TYPE = AST BINOP EXP */
 		/*************************************/
-		System.out.print("AST NODE TYPE\n");
 
 		/***************************************/
 		/* PRINT Node to AST GRAPHVIZ DOT file */

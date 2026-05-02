@@ -14,7 +14,6 @@ public class AstExpVarSubscript extends AstExpVar {
 	/******************/
 	public AstExpVarSubscript(AstExpVar var, AstExp subscript, int line)
 	{
-		System.out.print("====================== var -> var [ exp ]\n");
 		this.var = var;
 		this.subscript = subscript;
 		this.line = line;
@@ -28,7 +27,6 @@ public class AstExpVarSubscript extends AstExpVar {
 		/*************************************/
 		/* AST NODE TYPE = AST SUBSCRIPT VAR */
 		/*************************************/
-		System.out.print("AST NODE SUBSCRIPT VAR\n");
 
 		/****************************************/
 		/* RECURSIVELY PRINT VAR + SUBSRIPT ... */
@@ -52,13 +50,11 @@ public class AstExpVarSubscript extends AstExpVar {
 		}
 
 		if (subscriptType != types.TypeInt.getInstance()) {
-			System.out.format(">> ERROR [%d:%d] array subscript must be integral\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 
 		// if subscript is a plain value, ensure it's positive
 		if (subscript instanceof AstExpInt intExp && intExp.value < 0) {
-			System.out.format(">> ERROR [%d:%d] array subscript must be non-negative\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
@@ -67,7 +63,6 @@ public class AstExpVarSubscript extends AstExpVar {
 			types.TypeArray arrayType = (types.TypeArray) varType;
 			return arrayType.elementType;
 		}
-		System.out.format(">> ERROR [%d:%d] subscript must be on array type\n",line,line);
 		throw new Error("ERROR(" + line + ")");
 	}
 

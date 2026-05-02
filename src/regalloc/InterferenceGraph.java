@@ -78,12 +78,10 @@ public class InterferenceGraph {
         Stack<InterferenceNode> coloringStack = new Stack<>();
 
         List<InterferenceNode> activeNodes = new ArrayList<>(allNodes.values());
-        System.out.println("active node intiial size: "+activeNodes.size());
         while (!activeNodes.isEmpty()) {
             InterferenceNode nodeToRemove = null;
 
             for (InterferenceNode node : activeNodes) {
-                System.out.println(node.edges.size());
                 if (node.edges.size() < 10) {
                     nodeToRemove = node;
                     break; // Found one! Stop hunting.
@@ -101,7 +99,6 @@ public class InterferenceGraph {
                 neighbor.removeEdge(nodeToRemove);
             }
         }
-        System.out.println("coloring stack initial size: "+coloringStack.size());
         while (! coloringStack.isEmpty()) {
             InterferenceNode poppedNode = coloringStack.pop();
 
@@ -115,7 +112,6 @@ public class InterferenceGraph {
             for (int color = 0 ; color < 10 ; color++){
                 if (!used.contains(color)){
                     poppedNode.assignedColor = color;
-                    System.out.println("colored with color: "+color);
                     break;
                 }
             }

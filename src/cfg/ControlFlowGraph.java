@@ -33,7 +33,6 @@ public class ControlFlowGraph
 	 */
 	public void buildFromIR(Ir ir)
 	{
-		System.out.println("\n========== BUILDING CFG ==========");
 		
 		// Collect all IR commands into a list
 		List<IrCommand> allCommands = new ArrayList<>();
@@ -52,7 +51,6 @@ public class ControlFlowGraph
 			current = current.tail;
 		}
 		
-		System.out.println("Total IR commands: " + allCommands.size());
 		
 		if (allCommands.isEmpty()) {
 			return;
@@ -68,14 +66,12 @@ public class ControlFlowGraph
 			// Labels start new blocks
 			if (cmd instanceof IrCommandLabel) {
 				blockStarts.add(i);
-				System.out.println("  Block boundary at " + i + ": Label");
 			}
 			
 			// Instruction after a jump starts a new block
 			if (cmd instanceof IrCommandJumpLabel || cmd instanceof IrCommandJumpIfEqToZero) {
 				if (i + 1 < allCommands.size()) {
 					blockStarts.add(i + 1);
-					System.out.println("  Block boundary at " + (i + 1) + ": After jump");
 				}
 			}
 		}
@@ -84,7 +80,6 @@ public class ControlFlowGraph
 		List<Integer> sortedStarts = new ArrayList<>(blockStarts);
 		Collections.sort(sortedStarts);
 		
-		System.out.println("\nCreating " + sortedStarts.size() + " basic blocks:");
 		
 		Map<Integer, BasicBlock> startIndexToBlock = new HashMap<>();
 		
@@ -96,26 +91,22 @@ public class ControlFlowGraph
 			int startIdx = sortedStarts.get(i);
 			int endIdx = (i + 1 < sortedStarts.size()) ? sortedStarts.get(i + 1) : allCommands.size();
 			
-			System.out.println("  Block" + i + ": commands " + startIdx + " to " + (endIdx - 1));
 			
 			// Add instructions to block
 			for (int j = startIdx; j < endIdx; j++) {
 				IrCommand cmd = allCommands.get(j);
 				block.addInstruction(cmd);
 				
-				System.out.println("    [" + j + "] " + cmd.getClass().getSimpleName());
 				
 				// Track labels
 				if (cmd instanceof IrCommandLabel) {
 					IrCommandLabel labelCmd = (IrCommandLabel) cmd;
 					block.setLabel(labelCmd.getLabelName());
 					labelToBlock.put(labelCmd.getLabelName(), block);
-					System.out.println("      Label: " + labelCmd.getLabelName());
 				}
 			}
 		}
 		
-		System.out.println("\n========== CFG CONSTRUCTION COMPLETE ==========\n");
 		
 		// Step 3: Connect blocks (add edges) - keeping original logic
 		for (int i = 0; i < blocks.size(); i++) {

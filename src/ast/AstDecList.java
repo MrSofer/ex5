@@ -33,7 +33,6 @@ public class AstDecList extends AstNode
 		/********************************/
 		/* AST NODE TYPE = AST DEC LIST */
 		/********************************/
-		System.out.print("AST NODE DEC LIST\n");
 
 		/*************************************/
 		/* RECURSIVELY PRINT HEAD + TAIL ... */

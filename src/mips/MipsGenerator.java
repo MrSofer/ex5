@@ -218,6 +218,19 @@ public class MipsGenerator
 	/*****************************/
 	protected MipsGenerator() {}
 
+	public static void init(String outputPath) {
+		instance = new MipsGenerator();
+		try {
+			instance.fileWriter = new PrintWriter(outputPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		instance.fileWriter.print(".data\n");
+		instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
+		instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
+		instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
+	}
+
 	/******************************/
 	/* GET SINGLETON INSTANCE ... */
 	/******************************/
@@ -225,36 +238,7 @@ public class MipsGenerator
 	{
 		if (instance == null)
 		{
-			/*******************************/
-			/* [0] The instance itself ... */
-			/*******************************/
-			instance = new MipsGenerator();
-
-			try
-			{
-				/*********************************************************************************/
-				/* [1] Open the MIPS text file and write data section with error message strings */
-				/*********************************************************************************/
-				String dirname="./output/";
-				String filename=String.format("MIPS.txt");
-
-				/***************************************/
-				/* [2] Open MIPS text file for writing */
-				/***************************************/
-				instance.fileWriter = new PrintWriter(dirname+filename);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-
-			/*****************************************************/
-			/* [3] Print data section with error message strings */
-			/*****************************************************/
-			instance.fileWriter.print(".data\n");
-			instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
-			instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
-			instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
+			init("./output/MIPS.txt");
 		}
 		return instance;
 	}

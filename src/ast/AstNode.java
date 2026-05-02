@@ -16,7 +16,6 @@ public abstract class AstNode
 	/***********************************************/
 	public void printMe()
 	{
-		System.out.print("AST NODE UNKNOWN\n");
 	}
 
 	public Temp irMe()

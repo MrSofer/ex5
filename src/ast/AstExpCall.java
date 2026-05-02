@@ -41,7 +41,6 @@ public class AstExpCall extends AstExp
 		/********************************/
 		/* AST NODE TYPE = AST CALL EXP */
 		/********************************/
-		System.out.format("CALL(%s)\nWITH:\n",funcName);
 
 		/***************************************/
 		/* RECURSIVELY PRINT params + body ... */
@@ -91,7 +90,6 @@ public class AstExpCall extends AstExp
 
 		if (funcType == null)
 		{
-			System.out.format("Function not defined: %s\n", funcName);
 			throw new Error("ERROR(" + line + ")");
 		}
 
@@ -103,20 +101,17 @@ public class AstExpCall extends AstExp
 			TypeList currentType = ft.params;
 			for (AstExpList param = params; param != null; param = param.tail) {
 				if (currentType == null) {
-					System.out.println("Param length mismatch");
 					throw new Error("ERROR(" + line + ")");
 				}
 
 				Type currentParamType = param.head.semantMe();
 				if (!canTypeSub(currentType.head, currentParamType)) {
-					System.out.format("Param type mismatch: %s != %s\n", currentType.head.name, currentParamType.name);
 					throw new Error("ERROR(" + line + ")");
 				}
 
 				currentType = currentType.tail;
 			}
 			if (currentType != null) {
-				System.out.println("Param length mismatch");
 				throw new Error("ERROR(" + line + ")");
 			}
 

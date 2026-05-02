@@ -14,11 +14,6 @@ public class AstExpNil extends AstExp
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== exp -> NIL\n");
-
 		this.line = line;
 	}
 
@@ -30,7 +25,6 @@ public class AstExpNil extends AstExp
 		/*******************************/
 		/* AST NODE TYPE = AST NIL EXP */
 		/*******************************/
-		System.out.print("AST NODE NIL\n");
 
 		/*********************************/
 		/* Print to AST GRAPHVIZ DOT file */

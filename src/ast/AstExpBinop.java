@@ -21,11 +21,6 @@ public class AstExpBinop extends AstExp
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== exp -> exp BINOP exp\n");
-
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
 		/*******************************/
@@ -41,11 +36,6 @@ public class AstExpBinop extends AstExp
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== exp -> exp BINOP exp\n");
 
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
@@ -75,8 +65,6 @@ public class AstExpBinop extends AstExp
 		/**********************************/
 		/* AST NODE TYPE = AST BINOP EXP */
 		/*********************************/
-		System.out.print("AST NODE BINOP EXP\n");
-		System.out.format("BINOP EXP(%s)\n",sop);
 
 		/**************************************/
 		/* RECURSIVELY PRINT left + right ... */
@@ -109,7 +97,6 @@ public class AstExpBinop extends AstExp
 		if ((t1 == TypeInt.getInstance()) && (t2 == TypeInt.getInstance()))
 		{
 			if (op == 3 && right instanceof AstExpInt astExpInt && astExpInt.value == 0) {
-				System.out.format(">> ERROR [%d:%d] division by zero\n",line,line);
 				throw new Error("ERROR(" + line + ")");
 			}
 			return TypeInt.getInstance();
@@ -124,13 +111,11 @@ public class AstExpBinop extends AstExp
 				return TypeInt.getInstance(); // comparison returns int
 			} else {
 				// Other string operations not supported
-				System.out.format(">> ERROR [%d:%d] unsupported operation on strings\n",line,line);
 				throw new Error("ERROR(" + line + ")");
 			}
 		}
 
 		if (op != 6) {
-			System.out.format(">> ERROR [%d:%d] only ints support all ops, strings support + and all support comparison\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 
@@ -165,7 +150,6 @@ public class AstExpBinop extends AstExp
 			}
 		}
 
-		System.out.format(">> ERROR [%d:%d] type mismatch in binary operation\n",line,line);
 		throw new Error("ERROR(" + line + ")");
 	}
 
