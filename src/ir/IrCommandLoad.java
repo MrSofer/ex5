@@ -23,6 +23,8 @@ public class IrCommandLoad extends IrCommand
 		this.dst      = dst;
 		this.varName = varName;
 	}
+
+	public Temp getDefinedTemp() { return dst; }
 	
 	/***************/
 	/* MIPS me !!! */

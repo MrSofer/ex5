@@ -23,6 +23,8 @@ public class IRcommandConstInt extends IrCommand
 		this.t = t;
 		this.value = value;
 	}
+
+	public Temp getDefinedTemp() { return t; }
 	
 	/***************/
 	/* MIPS me !!! */

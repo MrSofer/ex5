@@ -25,6 +25,9 @@ public class IrCommandBinopEqIntegers extends IrCommand
 		this.t1 = t1;
 		this.t2 = t2;
 	}
+
+	public Temp getDefinedTemp() { return dst; }
+	public java.util.List<Temp> getUsedTemps() { return java.util.Arrays.asList(t1, t2); }
 	
 	/***************/
 	/* MIPS me !!! */

@@ -21,6 +21,8 @@ public class IrCommandPrintInt extends IrCommand
 	{
 		this.t = t;
 	}
+
+	public java.util.List<Temp> getUsedTemps() { return java.util.Arrays.asList(t); }
 	
 	/***************/
 	/* MIPS me !!! */
