@@ -117,9 +117,6 @@ public class AstExpBinop extends AstExp
 		// String operations: + for concatenation, = for comparison
 		if ((t1 == TypeString.getInstance()) && (t2 == TypeString.getInstance()))
 		{
-			System.out.println("OP NUMBER " + op);
-			System.out.println(t1.name);
-			System.out.println(t2.name);
 			// op == 0 is PLUS, op == 6 is EQ
 			if (op == 0) {
 				return TypeString.getInstance(); // concatenation returns string

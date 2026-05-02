@@ -287,10 +287,10 @@ public class AstDecClass extends AstDec
 		return parameterListsMatch(p1.tail, p2.tail);
 	}
 
-	private void printmembers(TypeClassVarDecList memberList) {
+	private void printMembers(TypeClassVarDecList memberList) {
 		if (memberList.head != null)
 			System.out.println(memberList.head.t.name + ": " + memberList.head.name);
 		if (memberList.tail != null)
-			printmembers(memberList.tail);
+			printMembers(memberList.tail);
 	}
 }

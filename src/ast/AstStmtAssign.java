@@ -135,13 +135,12 @@ public class AstStmtAssign extends AstStmt
 		else if (t1 != null && t2 != null && t1.isArray() && t2.isArray()) {
 			types.TypeArray a1 = (types.TypeArray) t1;
 			types.TypeArray a2 = (types.TypeArray) t2;
-			// Arrays match if their element types match
-			if (a1.elementType == a2.elementType && //checks for same element type
-					a1.name.endsWith("[]") != a2.name.endsWith("[]")) { // checks that one of them is type[] and not def
+			// Arrays match if their element types match (regardless of name format)
+			if (a1.elementType == a2.elementType ||
+					(a1.elementType != null && a2.elementType != null &&
+					 a1.elementType.name.equals(a2.elementType.name))) {
 				typesMatch = true;
 			}
-
-
 		}
 
 		if (!typesMatch)
