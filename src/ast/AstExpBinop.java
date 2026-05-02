@@ -104,23 +104,23 @@ public class AstExpBinop extends AstExp
 					getInstance().
 					AddIrCommand(new IrCommandBinopAddIntegers(dst,t1,t2));
 		}
-		if (op == 2)
+		if (op == 1)
 		{
 			Ir.
 					getInstance().
 					AddIrCommand(new IrCommandBinopMulIntegers(dst,t1,t2));
+		}
+		if (op == 2)
+		{
+			Ir.
+					getInstance().
+					AddIrCommand(new IrCommandBinopLtIntegers(dst,t1,t2));
 		}
 		if (op == 3)
 		{
 			Ir.
 					getInstance().
 					AddIrCommand(new IrCommandBinopEqIntegers(dst,t1,t2));
-		}
-		if (op == 4)
-		{
-			Ir.
-					getInstance().
-					AddIrCommand(new IrCommandBinopLtIntegers(dst,t1,t2));
 		}
 		return dst;
 	}
