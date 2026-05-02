@@ -2,135 +2,265 @@
 string_access_violation: .asciiz "Access Violation"
 string_illegal_div_by_0: .asciiz "Illegal Division By Zero"
 string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
-.data
-	global_i_0: .word 721
-.data
-	global_j_1: .word 721
-.data
-	global_p_2: .word 721
-.data
-	global_start_3: .word 721
-.data
-	global_end_4: .word 721
-.data
-	global_isPrime_5: .word 721
-.data
-	global_copyp_6: .word 721
-.data
-	global_copyisPrime_7: .word 721
 .text
-main:
-	li $t0,2
-	sw $t0,global_p_2
-	li $t0,2
-	sw $t0,global_start_3
-	li $t0,100
-	sw $t0,global_end_4
+user_main:
+.data
+	global_user_main_retval: .word 721
+.text
+.data
+	global_arr_0: .word 721
+.text
+	li $t1,7
+	li $t0,4
+	mul $t0,$t1,$t0
+	move $a0,$t0
+	li $v0,9
+	syscall
+	move $t0,$v0
+	sw $t0,global_arr_0
+	lw $t2,global_arr_0
+	li $t1,0
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,34
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,1
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,12
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,2
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,-600
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,3
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,-400
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,4
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,70
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,5
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,30
+	sw $t0,0($t1)
+	lw $t2,global_arr_0
+	li $t1,6
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	li $t0,-580
+	sw $t0,0($t1)
+	lw $t0,global_arr_0
+	sw $t0,global_BubbleSort_param_arr
+	li $t0,7
+	sw $t0,global_BubbleSort_param_size
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal BubbleSort
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t0,global_BubbleSort_retval
+.data
+	global_i_1: .word 721
+.text
+	li $t0,0
+	sw $t0,global_i_1
+.text
 Label_1_start:
-	lw $t2,global_p_2
-	lw $t1,global_end_4
+	lw $t1,global_i_1
+	li $t0,7
+	blt $t1,$t0,Label_9_AssignOne
+	bge $t1,$t0,Label_10_AssignZero
+.text
+Label_9_AssignOne:
 	li $t0,1
-	add $t0,$t1,$t0
-	blt $t2,$t0,Label_11_AssignOne
-	bge $t2,$t0,Label_12_AssignZero
-Label_11_AssignOne:
-	li $t0,1
-	j Label_10_end
-Label_12_AssignZero:
+	j Label_8_end
+.text
+Label_10_AssignZero:
 	li $t0,0
-	j Label_10_end
-Label_10_end:
+	j Label_8_end
+.text
+Label_8_end:
 	beq $t0,$zero,Label_0_end
-	li $t0,2
-	sw $t0,global_i_0
-	li $t0,2
-	sw $t0,global_j_1
-	li $t0,1
-	sw $t0,global_isPrime_5
-Label_3_start:
-	lw $t1,global_i_0
-	lw $t0,global_p_2
-	blt $t1,$t0,Label_14_AssignOne
-	bge $t1,$t0,Label_15_AssignZero
-Label_14_AssignOne:
-	li $t0,1
-	j Label_13_end
-Label_15_AssignZero:
-	li $t0,0
-	j Label_13_end
-Label_13_end:
-	beq $t0,$zero,Label_2_end
-	li $t0,2
-	sw $t0,global_j_1
-Label_5_start:
-	lw $t1,global_j_1
-	lw $t0,global_p_2
-	blt $t1,$t0,Label_17_AssignOne
-	bge $t1,$t0,Label_18_AssignZero
-Label_17_AssignOne:
-	li $t0,1
-	j Label_16_end
-Label_18_AssignZero:
-	li $t0,0
-	j Label_16_end
-Label_16_end:
-	beq $t0,$zero,Label_4_end
-	lw $t0,global_p_2
-	sw $t0,global_copyp_6
-Label_7_start:
-	lw $t1,global_i_0
-	lw $t0,global_j_1
-	mul $t1,$t1,$t0
-	lw $t0,global_copyp_6
-	beq $t1,$t0,Label_20_AssignOne
-	bne $t1,$t0,Label_21_AssignZero
-Label_20_AssignOne:
-	li $t0,1
-	j Label_19_end
-Label_21_AssignZero:
-	li $t0,0
-	j Label_19_end
-Label_19_end:
-	beq $t0,$zero,Label_6_end
-	li $t0,0
-	sw $t0,global_isPrime_5
-	li $t0,0
-	sw $t0,global_copyp_6
-	j Label_7_start
-Label_6_end:
-	lw $t1,global_j_1
-	li $t0,1
-	add $t0,$t1,$t0
-	sw $t0,global_j_1
-	j Label_5_start
-Label_4_end:
-	lw $t1,global_i_0
-	li $t0,1
-	add $t0,$t1,$t0
-	sw $t0,global_i_0
-	j Label_3_start
-Label_2_end:
-	lw $t0,global_isPrime_5
-	sw $t0,global_copyisPrime_7
-Label_9_start:
-	lw $t0,global_copyisPrime_7
-	beq $t0,$zero,Label_8_end
-	lw $t0,global_p_2
+	lw $t2,global_arr_0
+	lw $t1,global_i_1
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t0,$t2,$t0
+	lw $t0,0($t0)
 	move $a0,$t0
 	li $v0,1
 	syscall
 	li $a0,32
 	li $v0,11
 	syscall
-	li $t0,0
-	sw $t0,global_copyisPrime_7
-	j Label_9_start
-Label_8_end:
-	lw $t1,global_p_2
+	lw $t1,global_i_1
 	li $t0,1
 	add $t0,$t1,$t0
-	sw $t0,global_p_2
+	sw $t0,global_i_1
 	j Label_1_start
+.text
 Label_0_end:
+	jr $ra
+.text
+BubbleSort:
+.data
+	global_BubbleSort_retval: .word 721
+.text
+.data
+	global_BubbleSort_param_arr: .word 721
+.text
+.data
+	global_BubbleSort_param_size: .word 721
+.text
+.data
+	global_i_2: .word 721
+.text
+	li $t0,0
+	sw $t0,global_i_2
+.data
+	global_j_3: .word 721
+.text
+	li $t0,0
+	sw $t0,global_j_3
+.data
+	global_min_4: .word 721
+.text
+	li $t0,32767
+	sw $t0,global_min_4
+.data
+	global_minIndex_5: .word 721
+.text
+	li $t0,-1
+	sw $t0,global_minIndex_5
+.data
+	global_temp_6: .word 721
+.text
+	li $t0,0
+	sw $t0,global_temp_6
+.text
+Label_3_start:
+	lw $t1,global_i_2
+	lw $t0,global_BubbleSort_param_size
+	blt $t1,$t0,Label_12_AssignOne
+	bge $t1,$t0,Label_13_AssignZero
+.text
+Label_12_AssignOne:
+	li $t0,1
+	j Label_11_end
+.text
+Label_13_AssignZero:
+	li $t0,0
+	j Label_11_end
+.text
+Label_11_end:
+	beq $t0,$zero,Label_2_end
+	lw $t0,global_i_2
+	sw $t0,global_j_3
+	li $t0,32767
+	sw $t0,global_min_4
+.text
+Label_5_start:
+	lw $t1,global_j_3
+	lw $t0,global_BubbleSort_param_size
+	blt $t1,$t0,Label_15_AssignOne
+	bge $t1,$t0,Label_16_AssignZero
+.text
+Label_15_AssignOne:
+	li $t0,1
+	j Label_14_end
+.text
+Label_16_AssignZero:
+	li $t0,0
+	j Label_14_end
+.text
+Label_14_end:
+	beq $t0,$zero,Label_4_end
+	lw $t2,global_BubbleSort_param_arr
+	lw $t1,global_j_3
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t0,$t2,$t0
+	lw $t1,0($t0)
+	lw $t0,global_min_4
+	blt $t1,$t0,Label_18_AssignOne
+	bge $t1,$t0,Label_19_AssignZero
+.text
+Label_18_AssignOne:
+	li $t0,1
+	j Label_17_end
+.text
+Label_19_AssignZero:
+	li $t0,0
+	j Label_17_end
+.text
+Label_17_end:
+	beq $t0,$zero,Label_7_end
+	lw $t2,global_BubbleSort_param_arr
+	lw $t1,global_j_3
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t0,$t2,$t0
+	lw $t0,0($t0)
+	sw $t0,global_min_4
+	lw $t0,global_j_3
+	sw $t0,global_minIndex_5
+.text
+Label_7_end:
+	lw $t1,global_j_3
+	li $t0,1
+	add $t0,$t1,$t0
+	sw $t0,global_j_3
+	j Label_5_start
+.text
+Label_4_end:
+	lw $t2,global_BubbleSort_param_arr
+	lw $t1,global_i_2
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t0,$t2,$t0
+	lw $t0,0($t0)
+	sw $t0,global_temp_6
+	lw $t2,global_BubbleSort_param_arr
+	lw $t1,global_i_2
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	lw $t0,global_min_4
+	sw $t0,0($t1)
+	lw $t2,global_BubbleSort_param_arr
+	lw $t1,global_minIndex_5
+	li $t0,4
+	mul $t0,$t1,$t0
+	add $t1,$t2,$t0
+	lw $t0,global_temp_6
+	sw $t0,0($t1)
+	lw $t1,global_i_2
+	li $t0,1
+	add $t0,$t1,$t0
+	sw $t0,global_i_2
+	j Label_3_start
+.text
+Label_2_end:
+	jr $ra
+main:
+	jal user_main
 	li $v0,10
 	syscall

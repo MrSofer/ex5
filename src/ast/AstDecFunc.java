@@ -1,13 +1,13 @@
 package ast;
 
-import ir.Ir;
-import ir.IrCommandLabel;
-import ir.IrVarTable;
+import ir.*;
 import temp.Temp;
 import types.*;
 import symboltable.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class AstDecFunc extends AstDec
@@ -192,14 +192,57 @@ public class AstDecFunc extends AstDec
 		return "PrintInt".equals(funcName) || "PrintString".equals(funcName);
 	}
 
+	/****************************************************/
+	/* Tracks the current function being compiled so   */
+	/* AstStmtReturn can store the return value.       */
+	/****************************************************/
+	private static String currentMipsFuncName = null;
+
+	public static String getCurrentMipsFuncName() { return currentMipsFuncName; }
+
+	public void preRegisterParams()
+	{
+		String mipsName = name.equals("main") ? "user_main" : name;
+		List<String> paramLabels = new ArrayList<>();
+		for (AstTypeNameList it = params; it != null; it = it.tail)
+		{
+			String uniqueLabel = mipsName + "_param_" + it.head.name;
+			paramLabels.add(uniqueLabel);
+		}
+		FuncParamTable.getInstance().register(mipsName, paramLabels);
+	}
+
 	public Temp irMe()
 	{
-		Ir.
-				getInstance().
-				AddIrCommand(new IrCommandLabel(name));
+		String mipsName = name.equals("main") ? "user_main" : name;
+		currentMipsFuncName = mipsName;
+
+		Ir.getInstance().AddIrCommand(new IrCommandLabel(mipsName));
 		IrVarTable.getInstance().beginScope();
+
+		/******************************************************/
+		/* Always allocate a return-value global so call      */
+		/* sites can unconditionally load from it.            */
+		/******************************************************/
+		Ir.getInstance().AddIrCommand(new IrCommandAllocate(mipsName + "_retval"));
+
+		/******************************************************/
+		/* Allocate parameters as global variables and        */
+		/* register them in IrVarTable for the function scope */
+		/******************************************************/
+		for (AstTypeNameList it = params; it != null; it = it.tail)
+		{
+			String uniqueLabel = mipsName + "_param_" + it.head.name;
+			IrVarTable.getInstance().allocateWithLabel(it.head.name, uniqueLabel);
+			Ir.getInstance().AddIrCommand(new IrCommandAllocate(uniqueLabel));
+		}
+
 		if (body != null) body.irMe();
 		IrVarTable.getInstance().endScope();
+
+		currentMipsFuncName = null;
+
+		Ir.getInstance().AddIrCommand(new IrCommandReturn());
 
 		return null;
 	}

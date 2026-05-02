@@ -1,7 +1,6 @@
 package ast;
 
-import ir.Ir;
-import ir.IrCommandPrintInt;
+import ir.*;
 import symboltable.SymbolTable;
 import temp.Temp;
 import temp.TempFactory;
@@ -167,13 +166,42 @@ public class AstExpCall extends AstExp
 
 	public Temp irMe()
 	{
-		Temp t = null;
+		if ("PrintInt".equals(funcName))
+		{
+			Temp t = null;
+			if (params != null) { t = params.head.irMe(); }
+			Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
+			return TempFactory.getInstance().getFreshTemp();
+		}
 
-		if (params != null) { t = params.head.irMe(); }
+		/*******************************************************/
+		/* General function call: store arguments into the     */
+		/* function's parameter global variables, then jal.   */
+		/*******************************************************/
+		String mipsName = funcName;
+		java.util.List<String> paramLabels =
+				FuncParamTable.getInstance().getParams(mipsName);
 
-		Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
+		int i = 0;
+		for (AstExpList argIt = params; argIt != null; argIt = argIt.tail)
+		{
+			Temp argTemp = argIt.head.irMe();
+			if (i < paramLabels.size())
+			{
+				Ir.getInstance().AddIrCommand(
+						new IrCommandStore(paramLabels.get(i), argTemp));
+			}
+			i++;
+		}
 
-		Temp result = temp.TempFactory.getInstance().getFreshTemp();
-		return result;
+		Ir.getInstance().AddIrCommand(new IrCommandCall(mipsName));
+
+		/*******************************************************/
+		/* Load return value from the function's retval global */
+		/*******************************************************/
+		Temp retval = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsName + "_retval"));
+
+		return retval;
 	}
 }

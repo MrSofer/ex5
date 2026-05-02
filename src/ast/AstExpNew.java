@@ -1,5 +1,9 @@
 package ast;
 
+import ir.*;
+import temp.Temp;
+import temp.TempFactory;
+
 public class AstExpNew extends AstExp
 {
     public String typeName;
@@ -79,5 +83,28 @@ public class AstExpNew extends AstExp
             // This is a class allocation - return the class type
             return t;
         }
+    }
+
+    public Temp irMe()
+    {
+        if (arraySize != null)
+        {
+            /******************************************/
+            /* Array allocation: sbrk(size * 4) bytes */
+            /******************************************/
+            Temp sizeTemp = arraySize.irMe();
+
+            Temp four = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
+
+            Temp byteSize = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(
+                    new IrCommandBinopMulIntegers(byteSize, sizeTemp, four));
+
+            Temp result = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(byteSize, result));
+            return result;
+        }
+        return null;
     }
 }

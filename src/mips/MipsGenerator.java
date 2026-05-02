@@ -39,6 +39,8 @@ public class MipsGenerator
 	/***********************/
 	public void finalizeFile()
 	{
+		fileWriter.print("main:\n");
+		fileWriter.print("\tjal user_main\n");
 		fileWriter.print("\tli $v0,10\n");
 		fileWriter.print("\tsyscall\n");
 		fileWriter.close();
@@ -63,10 +65,44 @@ public class MipsGenerator
 //
 //		return t;
 //	}
+	public void callFunction(String funcName)
+	{
+		fileWriter.format("\tsubu $sp,$sp,4\n");
+		fileWriter.format("\tsw $ra,0($sp)\n");
+		fileWriter.format("\tjal %s\n", funcName);
+		fileWriter.format("\tlw $ra,0($sp)\n");
+		fileWriter.format("\taddu $sp,$sp,4\n");
+	}
+	public void returnFromFunction()
+	{
+		fileWriter.format("\tjr $ra\n");
+	}
+	public void loadIndirect(Temp dst, Temp base)
+	{
+		int dstIdx  = colorOf(dst);
+		int baseIdx = colorOf(base);
+		fileWriter.format("\tlw $t%d,0($t%d)\n", dstIdx, baseIdx);
+	}
+	public void storeIndirect(Temp base, Temp src)
+	{
+		int baseIdx = colorOf(base);
+		int srcIdx  = colorOf(src);
+		fileWriter.format("\tsw $t%d,0($t%d)\n", srcIdx, baseIdx);
+	}
+	public void allocateHeap(Temp size, Temp result)
+	{
+		int sizeIdx   = colorOf(size);
+		int resultIdx = colorOf(result);
+		fileWriter.format("\tmove $a0,$t%d\n", sizeIdx);
+		fileWriter.format("\tli $v0,9\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("\tmove $t%d,$v0\n", resultIdx);
+	}
 	public void allocate(String varName)
 	{
 		fileWriter.format(".data\n");
 		fileWriter.format("\tglobal_%s: .word 721\n",varName);
+		fileWriter.format(".text\n");
 	}
 	public void load(Temp dst, String varName)
 	{
@@ -131,15 +167,8 @@ public class MipsGenerator
 	}
 	public void label(String inlabel)
 	{
-		if (inlabel.equals("main"))
-		{
-			fileWriter.format(".text\n");
-			fileWriter.format("%s:\n",inlabel);
-		}
-		else
-		{
-			fileWriter.format("%s:\n",inlabel);
-		}
+		fileWriter.format(".text\n");
+		fileWriter.format("%s:\n",inlabel);
 	}	
 	public void jump(String inlabel)
 	{
