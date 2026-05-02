@@ -63,6 +63,15 @@ public class Main
 			/**********************/
 			/* [8] Ir the AST ... */
 			/**********************/
+			// Pre-register all function parameters so call sites can resolve them
+			// before the function body IR is generated (handles forward references)
+			for (ast.AstDecList it = ast; it != null; it = it.tail)
+			{
+				if (it.head instanceof AstDecFunc f)
+				{
+					f.preRegisterParams();
+				}
+			}
 			ast.irMe();
 
 			/*Register Allocation*/

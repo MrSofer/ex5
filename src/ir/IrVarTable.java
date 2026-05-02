@@ -63,6 +63,16 @@ public class IrVarTable
 	}
 
 	/**************************************************************/
+	/* Register a pre-determined label for a variable name in    */
+	/* the current (innermost) scope.  Used for function params  */
+	/* whose labels are fixed before IR generation begins.       */
+	/**************************************************************/
+	public void allocateWithLabel(String name, String uniqueLabel)
+	{
+		scopes.peek().put(name, uniqueLabel);
+	}
+
+	/**************************************************************/
 	/* Find the unique label for a variable, searching from the  */
 	/* innermost scope outward.  Returns null if not found.      */
 	/**************************************************************/

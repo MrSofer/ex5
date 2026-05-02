@@ -1,9 +1,8 @@
 package ast;
 
-import ir.Ir;
-import ir.IrCommandStore;
-import ir.IrVarTable;
+import ir.*;
 import temp.Temp;
+import temp.TempFactory;
 import types.*;
 
 public class AstStmtAssign extends AstStmt
@@ -160,15 +159,39 @@ public class AstStmtAssign extends AstStmt
 
 	public Temp irMe()
 	{
-		Temp src = exp.irMe();
-		if (var instanceof AstExpVarSimple)
+		if (var instanceof AstExpVarSubscript subscriptVar)
 		{
+			/*****************************************************/
+			/* Array subscript store: arr[idx] := exp            */
+			/* 1. Load base pointer                              */
+			/* 2. Load index, scale by 4, compute address        */
+			/* 3. Store value at computed address                */
+			/*****************************************************/
+			Temp baseTemp = subscriptVar.var.irMe();
+			Temp idxTemp  = subscriptVar.subscript.irMe();
+
+			Temp four = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
+			Temp offset = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(
+					new IrCommandBinopMulIntegers(offset, idxTemp, four));
+
+			Temp addr = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(
+					new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+
+			Temp src = exp.irMe();
+			Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
+		}
+		else if (var instanceof AstExpVarSimple)
+		{
+			Temp src = exp.irMe();
 			String varName = ((AstExpVarSimple) var).name;
 			String uniqueLabel = IrVarTable.getInstance().find(varName);
 			String label = (uniqueLabel != null) ? uniqueLabel : varName;
 			Ir.getInstance().AddIrCommand(new IrCommandStore(label, src));
 		}
-		// Array subscript and field access stores are not yet implemented in IR generation
+		// Field access stores not yet implemented in IR generation
 		return null;
 	}
 }

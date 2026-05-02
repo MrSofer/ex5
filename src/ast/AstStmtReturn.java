@@ -1,5 +1,8 @@
 package ast;
 
+import ir.*;
+import temp.Temp;
+
 public class AstStmtReturn extends AstStmt
 {
 	/****************/
@@ -138,5 +141,21 @@ public class AstStmtReturn extends AstStmt
 	public boolean hasReturnStatement()
 	{
 		return true;
+	}
+
+	public Temp irMe()
+	{
+		if (exp != null)
+		{
+			Temp retTemp = exp.irMe();
+			String funcName = AstDecFunc.getCurrentMipsFuncName();
+			if (funcName != null)
+			{
+				Ir.getInstance().AddIrCommand(
+						new IrCommandStore(funcName + "_retval", retTemp));
+			}
+		}
+		Ir.getInstance().AddIrCommand(new IrCommandReturn());
+		return null;
 	}
 }

@@ -1,5 +1,9 @@
 package ast;
 
+import ir.*;
+import temp.Temp;
+import temp.TempFactory;
+
 public class AstExpVarSubscript extends AstExpVar {
 	public AstExpVar var;
 	public AstExp subscript;
@@ -65,5 +69,39 @@ public class AstExpVarSubscript extends AstExpVar {
 		}
 		System.out.format(">> ERROR [%d:%d] subscript must be on array type\n",line,line);
 		throw new Error("ERROR(" + line + ")");
+	}
+
+	public Temp irMe()
+	{
+		/****************************/
+		/* [1] Load base pointer    */
+		/****************************/
+		Temp baseTemp = var.irMe();
+
+		/****************************/
+		/* [2] Load subscript index */
+		/****************************/
+		Temp idxTemp = subscript.irMe();
+
+		/*****************************/
+		/* [3] Scale index by 4      */
+		/*****************************/
+		Temp four = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
+		Temp offset = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandBinopMulIntegers(offset, idxTemp, four));
+
+		/*****************************/
+		/* [4] Compute element addr  */
+		/*****************************/
+		Temp addr = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+
+		/*****************************/
+		/* [5] Load value at addr    */
+		/*****************************/
+		Temp dst = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandLoadIndirect(dst, addr));
+		return dst;
 	}
 }
