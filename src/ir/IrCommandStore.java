@@ -13,6 +13,9 @@ package ir;
 import temp.*;
 import mips.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class IrCommandStore extends IrCommand
 {
 	String varName;
@@ -23,6 +26,8 @@ public class IrCommandStore extends IrCommand
 		this.src      = src;
 		this.varName = varName;
 	}
+
+	public List<Temp> getUsedTemps() { return Arrays.asList(src); }
 	
 	/***************/
 	/* MIPS me !!! */

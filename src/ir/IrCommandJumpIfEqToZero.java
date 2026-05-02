@@ -26,6 +26,8 @@ public class IrCommandJumpIfEqToZero extends IrCommand
 	public String getLabelName(){return this.labelName;}
 	public Temp getT(){return this.t;}
 
+	public java.util.List<Temp> getUsedTemps() { return java.util.Arrays.asList(t); }
+
 
 	/***************/
 	/* MIPS me !!! */
