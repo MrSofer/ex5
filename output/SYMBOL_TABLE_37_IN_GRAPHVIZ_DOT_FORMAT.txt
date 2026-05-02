@@ -5,13 +5,13 @@ hashTable [label="<f0>
 0
 "];
 hashTable:f0 -> node_0_0:f0;
-node_0_0 [label="<f0>d|<f1>IntList|<f2>prevtop=12|<f3>next"];
+node_0_0 [label="<f0>SCOPE-BOUNDARY|<f1>NONE|<f2>prevtop=12|<f3>next"];
 node_0_0 -> node_0_1 [style=invis,weight=10];
 node_0_0:f3 -> node_0_1:f0;
-node_0_1 [label="<f0>c|<f1>IntList|<f2>prevtop=11|<f3>next"];
+node_0_1 [label="<f0>l|<f1>IntList|<f2>prevtop=11|<f3>next"];
 node_0_1 -> node_0_2 [style=invis,weight=10];
 node_0_1:f3 -> node_0_2:f0;
-node_0_2 [label="<f0>b|<f1>IntList|<f2>prevtop=10|<f3>next"];
+node_0_2 [label="<f0>A|<f1>IntList|<f2>prevtop=10|<f3>next"];
 node_0_2 -> node_0_3 [style=invis,weight=10];
 node_0_2:f3 -> node_0_3:f0;
 node_0_3 [label="<f0>a|<f1>IntList|<f2>prevtop=9|<f3>next"];

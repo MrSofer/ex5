@@ -111,6 +111,8 @@ public class AstExpVarField extends AstExpVar {
 		if (cachedObjectType != null) {
 			int offset = ClassContext.getFieldOffset(cachedObjectType, fieldName);
 			if (offset >= 0) {
+				// Null check before field access
+				ir.Ir.getInstance().AddIrCommand(new ir.IrCommandNullCheck(objPtr));
 				temp.Temp offTemp = temp.TempFactory.getInstance().getFreshTemp();
 				ir.Ir.getInstance().AddIrCommand(new ir.IRcommandConstInt(offTemp, offset));
 				temp.Temp addr = temp.TempFactory.getInstance().getFreshTemp();

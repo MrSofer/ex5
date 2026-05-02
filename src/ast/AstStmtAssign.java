@@ -150,12 +150,12 @@ public class AstStmtAssign extends AstStmt
 		{
 			/*****************************************************/
 			/* Array subscript store: arr[idx] := exp            */
-			/* 1. Load base pointer                              */
-			/* 2. Load index, scale by 4, compute address        */
-			/* 3. Store value at computed address                */
 			/*****************************************************/
 			Temp baseTemp = subscriptVar.var.irMe();
 			Temp idxTemp  = subscriptVar.subscript.irMe();
+
+			// Bounds check
+			Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(baseTemp, idxTemp));
 
 			Temp four = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
@@ -163,9 +163,15 @@ public class AstStmtAssign extends AstStmt
 			Ir.getInstance().AddIrCommand(
 					new IrCommandPtrMul(offset, idxTemp, four));
 
+			// Add 4 to skip the size header
+			Temp headerSkip = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IRcommandConstInt(headerSkip, 4));
+			Temp totalOffset = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(totalOffset, offset, headerSkip));
+
 			Temp addr = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(
-					new IrCommandPtrAdd(addr, baseTemp, offset));
+					new IrCommandPtrAdd(addr, baseTemp, totalOffset));
 
 			Temp src = exp.irMe();
 			Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
@@ -173,6 +179,8 @@ public class AstStmtAssign extends AstStmt
 		else if (var instanceof AstExpVarField fieldVar)
 		{
 			Temp objPtr = fieldVar.var.irMe();
+			// Null check before field write
+			Ir.getInstance().AddIrCommand(new IrCommandNullCheck(objPtr));
 			Temp src = exp.irMe();
 		types.TypeClass tc = fieldVar.getCachedObjectType();
 			if (tc != null) {

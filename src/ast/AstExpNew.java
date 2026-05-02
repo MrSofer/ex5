@@ -90,19 +90,31 @@ public class AstExpNew extends AstExp
         if (arraySize != null)
         {
             /******************************************/
-            /* Array allocation: sbrk(size * 4) bytes */
+            /* Array allocation: sbrk((size+1)*4) bytes */
+            /* Layout: [size, elem0, elem1, ...]       */
             /******************************************/
             Temp sizeTemp = arraySize.irMe();
+
+            // Allocate (size+1) words: one extra for the size header
+            Temp one = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IRcommandConstInt(one, 1));
+            Temp sizePlusOne = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(
+                    new IrCommandBinopAddIntegers(sizePlusOne, sizeTemp, one));
 
             Temp four = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 
             Temp byteSize = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(
-                    new IrCommandPtrMul(byteSize, sizeTemp, four));
+                    new IrCommandPtrMul(byteSize, sizePlusOne, four));
 
             Temp result = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(byteSize, result));
+
+            // Store array size in first word
+            Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(result, sizeTemp));
+
             return result;
         }
         // Class allocation

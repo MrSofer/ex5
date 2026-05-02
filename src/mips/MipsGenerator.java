@@ -70,7 +70,7 @@ public class MipsGenerator
 //
 //		return t;
 //	}
-	public void callFunction(String funcName)
+	public void callFunction(String funcName, java.util.List<String> callerParams)
 	{
 		// Save caller-saved registers $t0-$t7
 		for (int i = 0; i < 8; i++) {
@@ -86,6 +86,24 @@ public class MipsGenerator
 		for (int i = 7; i >= 0; i--) {
 			fileWriter.format("\tlw $t%d,0($sp)\n", i);
 			fileWriter.format("\taddu $sp,$sp,4\n");
+		}
+	}
+
+	public void saveGlobals(java.util.List<String> paramLabels) {
+		if (paramLabels == null) return;
+		for (String paramLabel : paramLabels) {
+			fileWriter.format("\tlw $t8,global_%s\n", paramLabel);
+			fileWriter.format("\tsubu $sp,$sp,4\n");
+			fileWriter.format("\tsw $t8,0($sp)\n");
+		}
+	}
+
+	public void restoreGlobals(java.util.List<String> paramLabels) {
+		if (paramLabels == null) return;
+		for (int i = paramLabels.size() - 1; i >= 0; i--) {
+			fileWriter.format("\tlw $t8,0($sp)\n");
+			fileWriter.format("\taddu $sp,$sp,4\n");
+			fileWriter.format("\tsw $t8,global_%s\n", paramLabels.get(i));
 		}
 	}
 	public void returnFromFunction()
@@ -116,7 +134,7 @@ public class MipsGenerator
 	public void allocate(String varName)
 	{
 		fileWriter.format(".data\n");
-		fileWriter.format("\tglobal_%s: .word 721\n",varName);
+		fileWriter.format("\tglobal_%s: .word 0\n",varName);
 		fileWriter.format(".text\n");
 	}
 	public void load(Temp dst, String varName)
@@ -168,6 +186,7 @@ public class MipsGenerator
 		fileWriter.format("\taddi $t%d,$t%d,-1\n", dstidx, dstidx);
 		fileWriter.format("_floor_end_%d:\n", divCounter);
 		divCounter++;
+		saturate(dstidx);
 	}
 	public void sub(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
@@ -181,6 +200,133 @@ public class MipsGenerator
 
 	private int satCounter = 0;
 	private int divCounter = 0;
+
+	public void checkDivByZero(Temp divisor) {
+		int idx = colorOf(divisor);
+		String ok = "_div_ok_" + checkCounter++;
+		fileWriter.format("\tbne $t%d,$zero,%s\n", idx, ok);
+		fileWriter.format("\tla $a0,string_illegal_div_by_0\n");
+		fileWriter.format("\tli $v0,4\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("\tli $v0,10\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("%s:\n", ok);
+	}
+
+	public void checkNullPtr(Temp ptr) {
+		int idx = colorOf(ptr);
+		String ok = "_null_ok_" + checkCounter++;
+		fileWriter.format("\tbne $t%d,$zero,%s\n", idx, ok);
+		fileWriter.format("\tla $a0,string_invalid_ptr_dref\n");
+		fileWriter.format("\tli $v0,4\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("\tli $v0,10\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("%s:\n", ok);
+	}
+
+	public void checkArrayBounds(Temp ptr, Temp idx) {
+		int pReg = colorOf(ptr);
+		int iReg = colorOf(idx);
+		String errLabel = "_bounds_err_" + checkCounter;
+		String okLabel  = "_bounds_ok_" + checkCounter++;
+		// Null check
+		fileWriter.format("\tbeq $t%d,$zero,%s\n", pReg, errLabel);
+		// Negative index check
+		fileWriter.format("\tbltz $t%d,%s\n", iReg, errLabel);
+		// Upper bound: load size from *(ptr), compare idx >= size
+		fileWriter.format("\tlw $t8,0($t%d)\n", pReg);
+		fileWriter.format("\tbge $t%d,$t8,%s\n", iReg, errLabel);
+		fileWriter.format("\tj %s\n", okLabel);
+		fileWriter.format("%s:\n", errLabel);
+		fileWriter.format("\tla $a0,string_access_violation\n");
+		fileWriter.format("\tli $v0,4\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("\tli $v0,10\n");
+		fileWriter.format("\tsyscall\n");
+		fileWriter.format("%s:\n", okLabel);
+	}
+
+	private int checkCounter = 0;
+	private int strOpCounter = 0;
+
+	public void stringEq(Temp dst, Temp str1, Temp str2) {
+		int d  = colorOf(dst);
+		int s1 = colorOf(str1);
+		int s2 = colorOf(str2);
+		int c  = strOpCounter++;
+		fileWriter.format("\tmove $t8,$t%d\n", s1);
+		fileWriter.format("\tmove $t9,$t%d\n", s2);
+		fileWriter.format("_seq_loop_%d:\n", c);
+		fileWriter.format("\tlb $a0,0($t8)\n");
+		fileWriter.format("\tlb $a1,0($t9)\n");
+		fileWriter.format("\tbne $a0,$a1,_seq_ne_%d\n", c);
+		fileWriter.format("\tbeqz $a0,_seq_eq_%d\n", c);
+		fileWriter.format("\taddu $t8,$t8,1\n");
+		fileWriter.format("\taddu $t9,$t9,1\n");
+		fileWriter.format("\tj _seq_loop_%d\n", c);
+		fileWriter.format("_seq_ne_%d:\n", c);
+		fileWriter.format("\tli $t%d,0\n", d);
+		fileWriter.format("\tj _seq_end_%d\n", c);
+		fileWriter.format("_seq_eq_%d:\n", c);
+		fileWriter.format("\tli $t%d,1\n", d);
+		fileWriter.format("_seq_end_%d:\n", c);
+	}
+
+	public void stringConcat(Temp dst, Temp str1, Temp str2) {
+		int d  = colorOf(dst);
+		int s1 = colorOf(str1);
+		int s2 = colorOf(str2);
+		int c  = strOpCounter++;
+		// strlen(str1) into $a3
+		fileWriter.format("\tmove $t8,$t%d\n", s1);
+		fileWriter.format("\tli $a3,0\n");
+		fileWriter.format("_scat_len1_%d:\n", c);
+		fileWriter.format("\tlb $a0,0($t8)\n");
+		fileWriter.format("\tbeqz $a0,_scat_l1d_%d\n", c);
+		fileWriter.format("\taddu $t8,$t8,1\n");
+		fileWriter.format("\taddu $a3,$a3,1\n");
+		fileWriter.format("\tj _scat_len1_%d\n", c);
+		fileWriter.format("_scat_l1d_%d:\n", c);
+		// strlen(str2) into $a0
+		fileWriter.format("\tmove $t8,$t%d\n", s2);
+		fileWriter.format("\tli $a0,0\n");
+		fileWriter.format("_scat_len2_%d:\n", c);
+		fileWriter.format("\tlb $a1,0($t8)\n");
+		fileWriter.format("\tbeqz $a1,_scat_l2d_%d\n", c);
+		fileWriter.format("\taddu $t8,$t8,1\n");
+		fileWriter.format("\taddu $a0,$a0,1\n");
+		fileWriter.format("\tj _scat_len2_%d\n", c);
+		fileWriter.format("_scat_l2d_%d:\n", c);
+		// Allocate len1+len2+1 bytes via sbrk
+		fileWriter.format("\taddu $a0,$a0,$a3\n");
+		fileWriter.format("\taddu $a0,$a0,1\n");
+		fileWriter.format("\tli $v0,9\n");
+		fileWriter.format("\tsyscall\n");
+		// Copy str1 into new buffer ($v0)
+		fileWriter.format("\tmove $a2,$v0\n");
+		fileWriter.format("\tmove $t8,$t%d\n", s1);
+		fileWriter.format("_scat_cp1_%d:\n", c);
+		fileWriter.format("\tlb $a1,0($t8)\n");
+		fileWriter.format("\tsb $a1,0($a2)\n");
+		fileWriter.format("\tbeqz $a1,_scat_cp1d_%d\n", c);
+		fileWriter.format("\taddu $t8,$t8,1\n");
+		fileWriter.format("\taddu $a2,$a2,1\n");
+		fileWriter.format("\tj _scat_cp1_%d\n", c);
+		fileWriter.format("_scat_cp1d_%d:\n", c);
+		// Copy str2 starting at the NUL position (overwrite it)
+		fileWriter.format("\tmove $t8,$t%d\n", s2);
+		fileWriter.format("_scat_cp2_%d:\n", c);
+		fileWriter.format("\tlb $a1,0($t8)\n");
+		fileWriter.format("\tsb $a1,0($a2)\n");
+		fileWriter.format("\tbeqz $a1,_scat_cp2d_%d\n", c);
+		fileWriter.format("\taddu $t8,$t8,1\n");
+		fileWriter.format("\taddu $a2,$a2,1\n");
+		fileWriter.format("\tj _scat_cp2_%d\n", c);
+		fileWriter.format("_scat_cp2d_%d:\n", c);
+		// Result is $v0
+		fileWriter.format("\tmove $t%d,$v0\n", d);
+	}
 
 	private void saturate(int dst) {
 		fileWriter.format("\tli $t8,32767\n");
@@ -201,8 +347,11 @@ public class MipsGenerator
 
 	public void printString(String value) {
 		String lbl = "str_lit_" + (stringCounter++);
+		String stripped = value;
+		if (stripped.startsWith("\"") && stripped.endsWith("\"") && stripped.length() >= 2)
+			stripped = stripped.substring(1, stripped.length() - 1);
 		fileWriter.format(".data\n");
-		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, value);
+		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, stripped);
 		fileWriter.format(".text\n");
 		fileWriter.format("\tla $a0,%s\n", lbl);
 		fileWriter.format("\tli $v0,4\n");
@@ -212,8 +361,11 @@ public class MipsGenerator
 	public void loadString(Temp t, String value) {
 		int idx = colorOf(t);
 		String lbl = "str_lit_" + (stringCounter++);
+		String stripped = value;
+		if (stripped.startsWith("\"") && stripped.endsWith("\"") && stripped.length() >= 2)
+			stripped = stripped.substring(1, stripped.length() - 1);
 		fileWriter.format(".data\n");
-		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, value);
+		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, stripped);
 		fileWriter.format(".text\n");
 		fileWriter.format("\tla $t%d,%s\n", idx, lbl);
 	}

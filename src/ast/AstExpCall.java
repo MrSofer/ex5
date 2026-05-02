@@ -187,7 +187,15 @@ public class AstExpCall extends AstExp
 			String methodClass = findMethodClassName(tc, funcName);
 			String mipsMethod = (methodClass != null ? methodClass + "_" : "") + funcName;
 
+			// Save caller's params before computing args
+			java.util.List<String> callerMethodParams = FuncParamTable.getInstance().getParams(AstDecFunc.getCurrentMipsFuncName());
+			if (callerMethodParams == null) callerMethodParams = new java.util.ArrayList<>();
+			if (!callerMethodParams.isEmpty())
+				Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(callerMethodParams)));
+
 			Temp objPtr = object.irMe();
+			// Null check before method call
+			Ir.getInstance().AddIrCommand(new IrCommandNullCheck(objPtr));
 			// Store this pointer
 			String thisLabel = mipsMethod + "_param_this";
 			Ir.getInstance().AddIrCommand(new IrCommandStore(thisLabel, objPtr));
@@ -200,7 +208,9 @@ public class AstExpCall extends AstExp
 					Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemp));
 				i++;
 			}
-			Ir.getInstance().AddIrCommand(new IrCommandCall(mipsMethod));
+			Ir.getInstance().AddIrCommand(new IrCommandCall(mipsMethod, callerMethodParams));
+			if (!callerMethodParams.isEmpty())
+				Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(callerMethodParams)));
 			Temp retval = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsMethod + "_retval"));
 			return retval;
@@ -210,9 +220,15 @@ public class AstExpCall extends AstExp
 		/* General function call: store arguments into the     */
 		/* function's parameter global variables, then jal.   */
 		/*******************************************************/
-		String mipsName = funcName;
+		String mipsName = "func_" + funcName;
 		java.util.List<String> paramLabels =
 				FuncParamTable.getInstance().getParams(mipsName);
+
+		// Save caller's own param globals before computing args (preserves them for recursion)
+		java.util.List<String> callerParams = FuncParamTable.getInstance().getParams(AstDecFunc.getCurrentMipsFuncName());
+		if (callerParams == null) callerParams = new java.util.ArrayList<>();
+		if (!callerParams.isEmpty())
+			Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(callerParams)));
 
 		int i = 0;
 		for (AstExpList argIt = params; argIt != null; argIt = argIt.tail)
@@ -226,7 +242,11 @@ public class AstExpCall extends AstExp
 			i++;
 		}
 
-		Ir.getInstance().AddIrCommand(new IrCommandCall(mipsName));
+		Ir.getInstance().AddIrCommand(new IrCommandCall(mipsName, callerParams));
+
+		// Restore caller's params after call
+		if (!callerParams.isEmpty())
+			Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(callerParams)));
 
 		/*******************************************************/
 		/* Load return value from the function's retval global */

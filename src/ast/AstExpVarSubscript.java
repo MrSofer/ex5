@@ -79,21 +79,32 @@ public class AstExpVarSubscript extends AstExpVar {
 		Temp idxTemp = subscript.irMe();
 
 		/*****************************/
-		/* [3] Scale index by 4      */
+		/* [3] Array bounds check    */
+		/*****************************/
+		Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(baseTemp, idxTemp));
+
+		/*****************************/
+		/* [4] Scale index by 4 and skip size header (offset by 4) */
 		/*****************************/
 		Temp four = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 		Temp offset = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IrCommandPtrMul(offset, idxTemp, four));
 
-		/*****************************/
-		/* [4] Compute element addr  */
-		/*****************************/
-		Temp addr = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, baseTemp, offset));
+		// Add 4 to skip the size header
+		Temp headerSkip = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IRcommandConstInt(headerSkip, 4));
+		Temp totalOffset = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(totalOffset, offset, headerSkip));
 
 		/*****************************/
-		/* [5] Load value at addr    */
+		/* [5] Compute element addr  */
+		/*****************************/
+		Temp addr = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, baseTemp, totalOffset));
+
+		/*****************************/
+		/* [6] Load value at addr    */
 		/*****************************/
 		Temp dst = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IrCommandLoadIndirect(dst, addr));

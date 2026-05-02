@@ -10,6 +10,8 @@ public class AstExpBinop extends AstExp
 	public AstExp left;
 	public AstExp right;
 	public int line;
+	private boolean isStringConcat = false;
+	private boolean isStringEq     = false;
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
@@ -106,8 +108,10 @@ public class AstExpBinop extends AstExp
 		{
 			// op == 0 is PLUS, op == 6 is EQ
 			if (op == 0) {
+				isStringConcat = true;
 				return TypeString.getInstance(); // concatenation returns string
 			} else if (op == 6) {
+				isStringEq = true;
 				return TypeInt.getInstance(); // comparison returns int
 			} else {
 				// Other string operations not supported
@@ -157,6 +161,15 @@ public class AstExpBinop extends AstExp
 		Temp resultName = TempFactory.getInstance().getFreshTemp();
 		Temp leftName = left.irMe();
 		Temp rightName = right.irMe();
+
+		if (isStringConcat) {
+			Ir.getInstance().AddIrCommand(new IrCommandStringConcat(resultName, leftName, rightName));
+			return resultName;
+		}
+		if (isStringEq) {
+			Ir.getInstance().AddIrCommand(new IrCommandStringEq(resultName, leftName, rightName));
+			return resultName;
+		}
 
 		IrCommand cmd = switch (op) {
 			case 0 -> new IrCommandBinopAddIntegers(resultName, leftName, rightName);

@@ -36,6 +36,7 @@ public class IrCommandBinopDivIntegers extends IrCommand
 	/***************/
 	public void mipsMe()
 	{
+		MipsGenerator.getInstance().checkDivByZero(t2);
 		MipsGenerator.getInstance().div(dst, t1, t2);
 	}
 }

@@ -93,7 +93,7 @@ public class ClassContext {
         if (dataMembers != null) {
             for (AstDecList it = dataMembers; it != null; it = it.tail) {
                 if (it.head instanceof AstDecVar varDec) {
-                    ownVarFields.add(0, varDec); // prepend → declaration order
+                    ownVarFields.add(varDec); // append → declaration order
                 }
             }
         }

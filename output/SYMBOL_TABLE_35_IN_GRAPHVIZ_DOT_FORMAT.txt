@@ -5,7 +5,7 @@ hashTable [label="<f0>
 0
 "];
 hashTable:f0 -> node_0_0:f0;
-node_0_0 [label="<f0>b|<f1>IntList|<f2>prevtop=10|<f3>next"];
+node_0_0 [label="<f0>A|<f1>IntList|<f2>prevtop=10|<f3>next"];
 node_0_0 -> node_0_1 [style=invis,weight=10];
 node_0_0:f3 -> node_0_1:f0;
 node_0_1 [label="<f0>a|<f1>IntList|<f2>prevtop=9|<f3>next"];

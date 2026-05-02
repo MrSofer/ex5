@@ -205,7 +205,7 @@ public class AstDecFunc extends AstDec
 		String mipsName;
 		if (name.equals("main"))      mipsName = "user_main";
 		else if (prefix != null)      mipsName = prefix + "_" + name;
-		else                          mipsName = name;
+		else                          mipsName = "func_" + name;
 
 		List<String> paramLabels = new ArrayList<>();
 		if (prefix != null) paramLabels.add(mipsName + "_param_this");
@@ -220,7 +220,7 @@ public class AstDecFunc extends AstDec
 		String mipsName;
 		if (name.equals("main"))      mipsName = "user_main";
 		else if (prefix != null)      mipsName = prefix + "_" + name;
-		else                          mipsName = name;
+		else                          mipsName = "func_" + name;
 
 		currentMipsFuncName = mipsName;
 
