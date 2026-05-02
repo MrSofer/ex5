@@ -103,12 +103,8 @@ public class Main
 		catch (Error e)
 		{
 			String emsg = e.getMessage();
-			System.out.println(emsg);
-			String finalError;
-			if (emsg == null || !emsg.startsWith("ERROR("))
-				finalError = "ERROR";
-			else
-				finalError = emsg;
+			String finalError = (emsg == null || !emsg.startsWith("ERROR(")) ? "ERROR" : emsg;
+			System.out.println(finalError);
 
 			try {
 				if (fileWriter != null) fileWriter.close();
