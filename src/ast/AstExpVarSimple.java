@@ -2,6 +2,7 @@ package ast;
 
 import ir.Ir;
 import ir.IrCommandLoad;
+import ir.IrVarTable;
 import temp.Temp;
 import temp.TempFactory;
 import types.*;
@@ -67,7 +68,9 @@ public class AstExpVarSimple extends AstExpVar {
     public Temp irMe()
 	{
 		Temp t = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandLoad(t,name));
+		String uniqueLabel = IrVarTable.getInstance().find(name);
+		String label = (uniqueLabel != null) ? uniqueLabel : name;
+		Ir.getInstance().AddIrCommand(new IrCommandLoad(t,label));
 		return t;
 	}
 }

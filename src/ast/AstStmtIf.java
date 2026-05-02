@@ -1,6 +1,7 @@
 package ast;
 
 import ir.*;
+import ir.IrVarTable;
 import temp.Temp;
 import types.*;
 import symboltable.*;
@@ -184,7 +185,9 @@ public class AstStmtIf extends AstStmt
 		/* [4] body.IRme() */
 		/*******************/
 		if (body != null) {
+			IrVarTable.getInstance().beginScope();
 			body.irMe();
+			IrVarTable.getInstance().endScope();
 		}
 		
 		/****************************************/
@@ -205,7 +208,9 @@ public class AstStmtIf extends AstStmt
 			/**********************/
 			/* [7] elseBody.IRme() */
 			/**********************/
+			IrVarTable.getInstance().beginScope();
 			elseBody.irMe();
+			IrVarTable.getInstance().endScope();
 		}
 		
 		/**********************/

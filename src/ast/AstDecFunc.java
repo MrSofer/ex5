@@ -2,6 +2,7 @@ package ast;
 
 import ir.Ir;
 import ir.IrCommandLabel;
+import ir.IrVarTable;
 import temp.Temp;
 import types.*;
 import symboltable.*;
@@ -196,7 +197,9 @@ public class AstDecFunc extends AstDec
 		Ir.
 				getInstance().
 				AddIrCommand(new IrCommandLabel(name));
+		IrVarTable.getInstance().beginScope();
 		if (body != null) body.irMe();
+		IrVarTable.getInstance().endScope();
 
 		return null;
 	}

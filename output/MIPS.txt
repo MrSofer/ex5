@@ -3,32 +3,32 @@ string_access_violation: .asciiz "Access Violation"
 string_illegal_div_by_0: .asciiz "Illegal Division By Zero"
 string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
 .data
-	global_i: .word 721
+	global_i_0: .word 721
 .data
-	global_j: .word 721
+	global_j_1: .word 721
 .data
-	global_p: .word 721
+	global_p_2: .word 721
 .data
-	global_start: .word 721
+	global_start_3: .word 721
 .data
-	global_end: .word 721
+	global_end_4: .word 721
 .data
-	global_isPrime: .word 721
+	global_isPrime_5: .word 721
 .data
-	global_copyp: .word 721
+	global_copyp_6: .word 721
 .data
-	global_copyisPrime: .word 721
+	global_copyisPrime_7: .word 721
 .text
 main:
 	li $t0,2
-	sw $t0,global_p
+	sw $t0,global_p_2
 	li $t0,2
-	sw $t0,global_start
+	sw $t0,global_start_3
 	li $t0,100
-	sw $t0,global_end
+	sw $t0,global_end_4
 Label_1_start:
-	lw $t2,global_p
-	lw $t1,global_end
+	lw $t2,global_p_2
+	lw $t1,global_end_4
 	li $t0,1
 	add $t0,$t1,$t0
 	blt $t2,$t0,Label_11_AssignOne
@@ -42,14 +42,14 @@ Label_12_AssignZero:
 Label_10_end:
 	beq $t0,$zero,Label_0_end
 	li $t0,2
-	sw $t0,global_i
+	sw $t0,global_i_0
 	li $t0,2
-	sw $t0,global_j
+	sw $t0,global_j_1
 	li $t0,1
-	sw $t0,global_isPrime
+	sw $t0,global_isPrime_5
 Label_3_start:
-	lw $t1,global_i
-	lw $t0,global_p
+	lw $t1,global_i_0
+	lw $t0,global_p_2
 	blt $t1,$t0,Label_14_AssignOne
 	bge $t1,$t0,Label_15_AssignZero
 Label_14_AssignOne:
@@ -61,10 +61,10 @@ Label_15_AssignZero:
 Label_13_end:
 	beq $t0,$zero,Label_2_end
 	li $t0,2
-	sw $t0,global_j
+	sw $t0,global_j_1
 Label_5_start:
-	lw $t1,global_j
-	lw $t0,global_p
+	lw $t1,global_j_1
+	lw $t0,global_p_2
 	blt $t1,$t0,Label_17_AssignOne
 	bge $t1,$t0,Label_18_AssignZero
 Label_17_AssignOne:
@@ -75,13 +75,13 @@ Label_18_AssignZero:
 	j Label_16_end
 Label_16_end:
 	beq $t0,$zero,Label_4_end
-	lw $t0,global_p
-	sw $t0,global_copyp
+	lw $t0,global_p_2
+	sw $t0,global_copyp_6
 Label_7_start:
-	lw $t1,global_i
-	lw $t0,global_j
+	lw $t1,global_i_0
+	lw $t0,global_j_1
 	mul $t1,$t1,$t0
-	lw $t0,global_copyp
+	lw $t0,global_copyp_6
 	beq $t1,$t0,Label_20_AssignOne
 	bne $t1,$t0,Label_21_AssignZero
 Label_20_AssignOne:
@@ -93,29 +93,29 @@ Label_21_AssignZero:
 Label_19_end:
 	beq $t0,$zero,Label_6_end
 	li $t0,0
-	sw $t0,global_isPrime
+	sw $t0,global_isPrime_5
 	li $t0,0
-	sw $t0,global_copyp
+	sw $t0,global_copyp_6
 	j Label_7_start
 Label_6_end:
-	lw $t1,global_j
+	lw $t1,global_j_1
 	li $t0,1
 	add $t0,$t1,$t0
-	sw $t0,global_j
+	sw $t0,global_j_1
 	j Label_5_start
 Label_4_end:
-	lw $t1,global_i
+	lw $t1,global_i_0
 	li $t0,1
 	add $t0,$t1,$t0
-	sw $t0,global_i
+	sw $t0,global_i_0
 	j Label_3_start
 Label_2_end:
-	lw $t0,global_isPrime
-	sw $t0,global_copyisPrime
+	lw $t0,global_isPrime_5
+	sw $t0,global_copyisPrime_7
 Label_9_start:
-	lw $t0,global_copyisPrime
+	lw $t0,global_copyisPrime_7
 	beq $t0,$zero,Label_8_end
-	lw $t0,global_p
+	lw $t0,global_p_2
 	move $a0,$t0
 	li $v0,1
 	syscall
@@ -123,13 +123,13 @@ Label_9_start:
 	li $v0,11
 	syscall
 	li $t0,0
-	sw $t0,global_copyisPrime
+	sw $t0,global_copyisPrime_7
 	j Label_9_start
 Label_8_end:
-	lw $t1,global_p
+	lw $t1,global_p_2
 	li $t0,1
 	add $t0,$t1,$t0
-	sw $t0,global_p
+	sw $t0,global_p_2
 	j Label_1_start
 Label_0_end:
 	li $v0,10
