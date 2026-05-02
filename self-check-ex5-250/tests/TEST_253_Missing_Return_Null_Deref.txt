@@ -1,0 +1,15 @@
+class Foo
+{
+    int x := 10;
+}
+
+Foo bar()
+{
+    int y := 5;
+}
+
+void main()
+{
+    Foo f := bar();
+    PrintInt(f.x);
+}

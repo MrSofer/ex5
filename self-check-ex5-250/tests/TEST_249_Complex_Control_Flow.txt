@@ -1,0 +1,67 @@
+int classify(int n)
+{
+    if (n < 0)
+    {
+        return 0 - 1;
+    }
+    if (n = 0)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+int absVal(int n)
+{
+    if (n < 0)
+    {
+        return 0 - n;
+    }
+    return n;
+}
+
+int countDown(int n)
+{
+    int total := 0;
+    while (n > 0)
+    {
+        total := total + n;
+        n := n - 1;
+    }
+    return total;
+}
+
+int nested(int a, int b)
+{
+    int result := 0;
+    int i := 0;
+    while (i < a)
+    {
+        int j := 0;
+        while (j < b)
+        {
+            if (i = j)
+            {
+                result := result + 1;
+            }
+            j := j + 1;
+        }
+        i := i + 1;
+    }
+    return result;
+}
+
+void main()
+{
+    PrintInt(classify(0 - 5));
+    PrintInt(classify(0));
+    PrintInt(classify(42));
+    PrintInt(absVal(0 - 10));
+    PrintInt(absVal(10));
+    PrintInt(absVal(0));
+    PrintInt(countDown(10));
+    PrintInt(countDown(0));
+    PrintInt(nested(5, 5));
+    PrintInt(nested(3, 7));
+    PrintInt(nested(0, 5));
+}

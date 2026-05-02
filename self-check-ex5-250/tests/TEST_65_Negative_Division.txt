@@ -1,0 +1,14 @@
+void main()
+{
+    int a := 0 - 10;
+    int b := 2;
+    PrintInt(a / b);
+    int c := 0 - 100;
+    int d := 10;
+    PrintInt(c / d);
+    int e := 0 - 9;
+    int f := 0 - 3;
+    PrintInt(e / f);
+    PrintInt((0 - 8) / 4);
+    PrintInt(15 / 5);
+}
