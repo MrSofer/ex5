@@ -6,18 +6,16 @@ public class AstExpVarField extends AstExpVar {
 	public AstExpVar var;
 	public String fieldName;
 	public int line;
+	private types.TypeClass cachedObjectType = null;
+
+	public types.TypeClass getCachedObjectType() { return cachedObjectType; }
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
 	public AstExpVarField(AstExpVar var, String fieldName)
 	{
-		/******************************/
-		/* SET A UNIQUE SERIAL NUMBER */
-		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		System.out.format("====================== var -> var DOT ID( %s )\n",fieldName);
 		this.var = var;
 		this.fieldName = fieldName;
 		this.line = 0;
@@ -25,12 +23,7 @@ public class AstExpVarField extends AstExpVar {
 
 	public AstExpVarField(AstExpVar var, String fieldName, int line)
 	{
-		/******************************/
-		/* SET A UNIQUE SERIAL NUMBER */
-		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		System.out.format("====================== var -> var DOT ID( %s )\n",fieldName);
 		this.var = var;
 		this.fieldName = fieldName;
 		this.line = line;
@@ -73,6 +66,7 @@ public class AstExpVarField extends AstExpVar {
 		/* [1] Recursively semant var */
 		/******************************/
 		if (var != null) t = var.semantMe();
+		if (t != null && t.isClass()) cachedObjectType = (TypeClass) t;
 		
 		/*********************************/
 		/* [2] Make sure type is a class */
@@ -109,5 +103,23 @@ public class AstExpVarField extends AstExpVar {
 		/*********************************************/
 		System.out.format(">> ERROR [%d:%d] field %s does not exist in class\n",line,line,fieldName);
 		throw new Error("ERROR(" + line + ")");
+	}
+
+	public temp.Temp irMe()
+	{
+		temp.Temp objPtr = var.irMe();
+		if (cachedObjectType != null) {
+			int offset = ClassContext.getFieldOffset(cachedObjectType, fieldName);
+			if (offset >= 0) {
+				temp.Temp offTemp = temp.TempFactory.getInstance().getFreshTemp();
+				ir.Ir.getInstance().AddIrCommand(new ir.IRcommandConstInt(offTemp, offset));
+				temp.Temp addr = temp.TempFactory.getInstance().getFreshTemp();
+				ir.Ir.getInstance().AddIrCommand(new ir.IrCommandPtrAdd(addr, objPtr, offTemp));
+				temp.Temp result = temp.TempFactory.getInstance().getFreshTemp();
+				ir.Ir.getInstance().AddIrCommand(new ir.IrCommandLoadIndirect(result, addr));
+				return result;
+			}
+		}
+		return objPtr;
 	}
 }

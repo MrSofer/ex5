@@ -161,24 +161,54 @@ public class AstStmtAssign extends AstStmt
 			Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 			Temp offset = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(
-					new IrCommandBinopMulIntegers(offset, idxTemp, four));
+					new IrCommandPtrMul(offset, idxTemp, four));
 
 			Temp addr = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(
-					new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+					new IrCommandPtrAdd(addr, baseTemp, offset));
 
 			Temp src = exp.irMe();
 			Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
 		}
-		else if (var instanceof AstExpVarSimple)
+		else if (var instanceof AstExpVarField fieldVar)
 		{
+			Temp objPtr = fieldVar.var.irMe();
 			Temp src = exp.irMe();
-			String varName = ((AstExpVarSimple) var).name;
+		types.TypeClass tc = fieldVar.getCachedObjectType();
+			if (tc != null) {
+				int fieldOffset = ast.ClassContext.getFieldOffset(tc, fieldVar.fieldName);
+				if (fieldOffset >= 0) {
+					Temp offTemp = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IRcommandConstInt(offTemp, fieldOffset));
+					Temp addr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, objPtr, offTemp));
+					Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
+				}
+			}
+		}
+		else if (var instanceof AstExpVarSimple simpleVar)
+		{
+			String varName = simpleVar.name;
+			if (ast.ClassContext.getInstance().isInClassMethod()) {
+				types.TypeClass tc = ast.ClassContext.getInstance().getCurrentClassType();
+				int fieldOffset = ast.ClassContext.getFieldOffset(tc, varName);
+				if (fieldOffset >= 0) {
+					Temp src = exp.irMe();
+					Temp thisPtr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandLoad(thisPtr, ast.ClassContext.getInstance().getThisLabel()));
+					Temp offTemp = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IRcommandConstInt(offTemp, fieldOffset));
+					Temp addr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, thisPtr, offTemp));
+					Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
+					return null;
+				}
+			}
+			Temp src = exp.irMe();
 			String uniqueLabel = IrVarTable.getInstance().find(varName);
 			String label = (uniqueLabel != null) ? uniqueLabel : varName;
 			Ir.getInstance().AddIrCommand(new IrCommandStore(label, src));
 		}
-		// Field access stores not yet implemented in IR generation
 		return null;
 	}
 }

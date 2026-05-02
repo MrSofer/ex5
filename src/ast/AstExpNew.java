@@ -99,10 +99,23 @@ public class AstExpNew extends AstExp
 
             Temp byteSize = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(
-                    new IrCommandBinopMulIntegers(byteSize, sizeTemp, four));
+                    new IrCommandPtrMul(byteSize, sizeTemp, four));
 
             Temp result = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(byteSize, result));
+            return result;
+        }
+        // Class allocation
+        types.Type t = symboltable.SymbolTable.getInstance().find(typeName);
+        if (t instanceof types.TypeClass tc) {
+            int totalFields = ast.ClassContext.countNonMethodFields(tc);
+            int byteSize2 = (totalFields > 0 ? totalFields : 1) * 4;
+            Temp sizeTemp2 = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IRcommandConstInt(sizeTemp2, byteSize2));
+            Temp result = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(sizeTemp2, result));
+            // Initialize fields
+            ast.ClassContext.emitFieldInit(tc, result);
             return result;
         }
         return null;

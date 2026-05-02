@@ -55,11 +55,11 @@ public class Main
 			for (ast.AstDecList it = ast; it != null; it = it.tail)
 			{
 				if (it.head instanceof AstDecFunc f)
-				{
 					f.preRegisterParams();
-				}
+				else if (it.head instanceof AstDecClass c)
+					c.preRegisterParams();
 			}
-			ast.irMe();
+			ast.irMeTopLevel();
 
 			/*Register Allocation*/
 			RegisterAllocator allocator = new RegisterAllocator(Ir.getInstance().getCommands());

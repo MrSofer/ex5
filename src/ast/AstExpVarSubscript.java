@@ -84,13 +84,13 @@ public class AstExpVarSubscript extends AstExpVar {
 		Temp four = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 		Temp offset = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandBinopMulIntegers(offset, idxTemp, four));
+		Ir.getInstance().AddIrCommand(new IrCommandPtrMul(offset, idxTemp, four));
 
 		/*****************************/
 		/* [4] Compute element addr  */
 		/*****************************/
 		Temp addr = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, baseTemp, offset));
 
 		/*****************************/
 		/* [5] Load value at addr    */

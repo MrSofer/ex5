@@ -80,4 +80,27 @@ public class AstDecList extends AstNode
 		}
 		return null;
 	}
+
+	public Temp irMeTopLevel()
+	{
+		// Step 1: global_init function wrapping all global var declarations
+		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandLabel("global_init"));
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head != null && !(it.head instanceof AstDecFunc) && !(it.head instanceof AstDecClass)) {
+				it.head.irMe();
+			}
+		}
+		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandReturn());
+
+		// Step 2: emit class methods
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecClass c) c.irMe();
+		}
+
+		// Step 3: emit regular functions
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecFunc f) f.irMe();
+		}
+		return null;
+	}
 }

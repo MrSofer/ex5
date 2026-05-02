@@ -82,7 +82,7 @@ public class InterferenceGraph {
             InterferenceNode nodeToRemove = null;
 
             for (InterferenceNode node : activeNodes) {
-                if (node.edges.size() < 10) {
+                if (node.edges.size() < 8) {
                     nodeToRemove = node;
                     break; // Found one! Stop hunting.
                 }
@@ -109,7 +109,7 @@ public class InterferenceGraph {
                 }
             }
 
-            for (int color = 0 ; color < 10 ; color++){
+            for (int color = 0 ; color < 8 ; color++){
                 if (!used.contains(color)){
                     poppedNode.assignedColor = color;
                     break;

@@ -40,6 +40,11 @@ public class MipsGenerator
 	public void finalizeFile()
 	{
 		fileWriter.print("main:\n");
+		fileWriter.print("\tsubu $sp,$sp,4\n");
+		fileWriter.print("\tsw $ra,0($sp)\n");
+		fileWriter.print("\tjal global_init\n");
+		fileWriter.print("\tlw $ra,0($sp)\n");
+		fileWriter.print("\taddu $sp,$sp,4\n");
 		fileWriter.print("\tjal user_main\n");
 		fileWriter.print("\tli $v0,10\n");
 		fileWriter.print("\tsyscall\n");
@@ -67,11 +72,21 @@ public class MipsGenerator
 //	}
 	public void callFunction(String funcName)
 	{
+		// Save caller-saved registers $t0-$t7
+		for (int i = 0; i < 8; i++) {
+			fileWriter.format("\tsubu $sp,$sp,4\n");
+			fileWriter.format("\tsw $t%d,0($sp)\n", i);
+		}
 		fileWriter.format("\tsubu $sp,$sp,4\n");
 		fileWriter.format("\tsw $ra,0($sp)\n");
 		fileWriter.format("\tjal %s\n", funcName);
 		fileWriter.format("\tlw $ra,0($sp)\n");
 		fileWriter.format("\taddu $sp,$sp,4\n");
+		// Restore caller-saved registers $t0-$t7 in reverse
+		for (int i = 7; i >= 0; i--) {
+			fileWriter.format("\tlw $t%d,0($sp)\n", i);
+			fileWriter.format("\taddu $sp,$sp,4\n");
+		}
 	}
 	public void returnFromFunction()
 	{
@@ -126,6 +141,7 @@ public class MipsGenerator
 		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tadd $t%d,$t%d,$t%d\n",dstidx,i1,i2);
+		saturate(dstidx);
 	}
 	public void mul(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
@@ -134,6 +150,7 @@ public class MipsGenerator
 		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tmul $t%d,$t%d,$t%d\n",dstidx,i1,i2);
+		saturate(dstidx);
 	}
 	public void div(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
@@ -141,7 +158,16 @@ public class MipsGenerator
 		int i2 =colorOf(oprnd2);
 		int dstidx=colorOf(dst);
 
-		fileWriter.format("\tdiv $t%d,$t%d,$t%d\n",dstidx,i1,i2);
+		// Floor division: MIPS truncates towards zero, L language floors towards -inf
+		fileWriter.format("\tdiv $t%d,$t%d\n", i1, i2);
+		fileWriter.format("\tmflo $t%d\n", dstidx);
+		fileWriter.format("\tmfhi $t8\n");
+		fileWriter.format("\tbeqz $t8,_floor_end_%d\n", divCounter);
+		fileWriter.format("\txor $t9,$t%d,$t%d\n", i1, i2);
+		fileWriter.format("\tbgez $t9,_floor_end_%d\n", divCounter);
+		fileWriter.format("\taddi $t%d,$t%d,-1\n", dstidx, dstidx);
+		fileWriter.format("_floor_end_%d:\n", divCounter);
+		divCounter++;
 	}
 	public void sub(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
@@ -150,6 +176,69 @@ public class MipsGenerator
 		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tsub $t%d,$t%d,$t%d\n",dstidx,i1,i2);
+		saturate(dstidx);
+	}
+
+	private int satCounter = 0;
+	private int divCounter = 0;
+
+	private void saturate(int dst) {
+		fileWriter.format("\tli $t8,32767\n");
+		fileWriter.format("\tbgt $t%d,$t8,_sat_max_%d\n", dst, satCounter);
+		fileWriter.format("\tli $t9,-32768\n");
+		fileWriter.format("\tblt $t%d,$t9,_sat_min_%d\n", dst, satCounter);
+		fileWriter.format("\tj _sat_end_%d\n", satCounter);
+		fileWriter.format("_sat_max_%d:\n", satCounter);
+		fileWriter.format("\tli $t%d,32767\n", dst);
+		fileWriter.format("\tj _sat_end_%d\n", satCounter);
+		fileWriter.format("_sat_min_%d:\n", satCounter);
+		fileWriter.format("\tli $t%d,-32768\n", dst);
+		fileWriter.format("_sat_end_%d:\n", satCounter);
+		satCounter++;
+	}
+
+	private int stringCounter = 0;
+
+	public void printString(String value) {
+		String lbl = "str_lit_" + (stringCounter++);
+		fileWriter.format(".data\n");
+		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, value);
+		fileWriter.format(".text\n");
+		fileWriter.format("\tla $a0,%s\n", lbl);
+		fileWriter.format("\tli $v0,4\n");
+		fileWriter.format("\tsyscall\n");
+	}
+
+	public void loadString(Temp t, String value) {
+		int idx = colorOf(t);
+		String lbl = "str_lit_" + (stringCounter++);
+		fileWriter.format(".data\n");
+		fileWriter.format("\t%s: .asciiz \"%s\"\n", lbl, value);
+		fileWriter.format(".text\n");
+		fileWriter.format("\tla $t%d,%s\n", idx, lbl);
+	}
+
+	public void printStringFromReg(Temp t) {
+		int idx = colorOf(t);
+		fileWriter.format("\tmove $a0,$t%d\n", idx);
+		fileWriter.format("\tli $v0,4\n");
+		fileWriter.format("\tsyscall\n");
+	}
+
+	public void ptrAdd(Temp dst, Temp base, Temp offset)
+	{
+		int dstidx = colorOf(dst);
+		int bidx   = colorOf(base);
+		int oidx   = colorOf(offset);
+		fileWriter.format("\tadd $t%d,$t%d,$t%d\n", dstidx, bidx, oidx);
+	}
+
+	public void ptrMul(Temp dst, Temp oprnd1, Temp oprnd2)
+	{
+		int dstidx = colorOf(dst);
+		int i1     = colorOf(oprnd1);
+		int i2     = colorOf(oprnd2);
+		fileWriter.format("\tmul $t%d,$t%d,$t%d\n", dstidx, i1, i2);
 	}
 	public void bgt(Temp oprnd1, Temp oprnd2, String label)
 	{

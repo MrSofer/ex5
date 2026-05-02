@@ -192,44 +192,51 @@ public class AstDecFunc extends AstDec
 		return "PrintInt".equals(funcName) || "PrintString".equals(funcName);
 	}
 
-	/****************************************************/
-	/* Tracks the current function being compiled so   */
-	/* AstStmtReturn can store the return value.       */
-	/****************************************************/
 	private static String currentMipsFuncName = null;
-
 	public static String getCurrentMipsFuncName() { return currentMipsFuncName; }
+
+	private static String currentClassContext = null;
+	public static String getCurrentClassContext() { return currentClassContext; }
+	public static void setCurrentClassContext(String ctx) { currentClassContext = ctx; }
 
 	public void preRegisterParams()
 	{
-		String mipsName = name.equals("main") ? "user_main" : name;
+		String prefix = currentClassContext;
+		String mipsName;
+		if (name.equals("main"))      mipsName = "user_main";
+		else if (prefix != null)      mipsName = prefix + "_" + name;
+		else                          mipsName = name;
+
 		List<String> paramLabels = new ArrayList<>();
+		if (prefix != null) paramLabels.add(mipsName + "_param_this");
 		for (AstTypeNameList it = params; it != null; it = it.tail)
-		{
-			String uniqueLabel = mipsName + "_param_" + it.head.name;
-			paramLabels.add(uniqueLabel);
-		}
+			paramLabels.add(mipsName + "_param_" + it.head.name);
 		FuncParamTable.getInstance().register(mipsName, paramLabels);
 	}
 
 	public Temp irMe()
 	{
-		String mipsName = name.equals("main") ? "user_main" : name;
+		String prefix = currentClassContext;
+		String mipsName;
+		if (name.equals("main"))      mipsName = "user_main";
+		else if (prefix != null)      mipsName = prefix + "_" + name;
+		else                          mipsName = name;
+
 		currentMipsFuncName = mipsName;
 
 		Ir.getInstance().AddIrCommand(new IrCommandLabel(mipsName));
 		IrVarTable.getInstance().beginScope();
 
-		/******************************************************/
-		/* Always allocate a return-value global so call      */
-		/* sites can unconditionally load from it.            */
-		/******************************************************/
 		Ir.getInstance().AddIrCommand(new IrCommandAllocate(mipsName + "_retval"));
 
-		/******************************************************/
-		/* Allocate parameters as global variables and        */
-		/* register them in IrVarTable for the function scope */
-		/******************************************************/
+		if (prefix != null) {
+			String thisLabel = mipsName + "_param_this";
+			Ir.getInstance().AddIrCommand(new IrCommandAllocate(thisLabel));
+			ClassContext.getInstance().enterClass(
+				(types.TypeClass) symboltable.SymbolTable.getInstance().find(prefix),
+				thisLabel);
+		}
+
 		for (AstTypeNameList it = params; it != null; it = it.tail)
 		{
 			String uniqueLabel = mipsName + "_param_" + it.head.name;
@@ -240,10 +247,10 @@ public class AstDecFunc extends AstDec
 		if (body != null) body.irMe();
 		IrVarTable.getInstance().endScope();
 
+		if (prefix != null) ClassContext.getInstance().leaveClass();
+
 		currentMipsFuncName = null;
-
 		Ir.getInstance().AddIrCommand(new IrCommandReturn());
-
 		return null;
 	}
 }

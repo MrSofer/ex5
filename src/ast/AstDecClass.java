@@ -280,4 +280,28 @@ public class AstDecClass extends AstDec
 		if (memberList.tail != null)
 			printMembers(memberList.tail);
 	}
+
+	public void preRegisterParams() {
+		String prev = AstDecFunc.getCurrentClassContext();
+		AstDecFunc.setCurrentClassContext(name);
+		if (dataMembers != null) {
+			for (AstDecList it = dataMembers; it != null; it = it.tail) {
+				if (it.head instanceof AstDecFunc f) f.preRegisterParams();
+			}
+		}
+		AstDecFunc.setCurrentClassContext(prev);
+	}
+
+	public temp.Temp irMe() {
+		ClassRegistry.getInstance().register(name, dataMembers);
+		String prev = AstDecFunc.getCurrentClassContext();
+		AstDecFunc.setCurrentClassContext(name);
+		if (dataMembers != null) {
+			for (AstDecList it = dataMembers; it != null; it = it.tail) {
+				if (it.head instanceof AstDecFunc f) f.irMe();
+			}
+		}
+		AstDecFunc.setCurrentClassContext(prev);
+		return null;
+	}
 }

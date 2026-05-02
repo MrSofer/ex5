@@ -15,6 +15,7 @@ public class AstExpCall extends AstExp
 	public AstExpVar object;
 	public AstExpList params;
 	public int line;
+	private Type cachedObjectType = null;
 
 	/******************/
 	/* CONSTRUCTOR(S) */
@@ -69,6 +70,7 @@ public class AstExpCall extends AstExp
 		// Method call on object
 		if (object != null) {
 			Type objectType = object.semantMe();
+			cachedObjectType = objectType;
 			if (objectType == null) {
 				return null;
 			}
@@ -169,6 +171,41 @@ public class AstExpCall extends AstExp
 			return TempFactory.getInstance().getFreshTemp();
 		}
 
+		if ("PrintString".equals(funcName))
+		{
+			if (params != null && params.head instanceof AstExpString strExp) {
+				Ir.getInstance().AddIrCommand(new IrCommandPrintString(strExp.value));
+			} else if (params != null) {
+				Temp t = params.head.irMe();
+				Ir.getInstance().AddIrCommand(new IrCommandPrintStringVar(t));
+			}
+			return TempFactory.getInstance().getFreshTemp();
+		}
+
+		// Method call on object
+		if (object != null && cachedObjectType instanceof TypeClass tc) {
+			String methodClass = findMethodClassName(tc, funcName);
+			String mipsMethod = (methodClass != null ? methodClass + "_" : "") + funcName;
+
+			Temp objPtr = object.irMe();
+			// Store this pointer
+			String thisLabel = mipsMethod + "_param_this";
+			Ir.getInstance().AddIrCommand(new IrCommandStore(thisLabel, objPtr));
+
+			java.util.List<String> paramLabels = FuncParamTable.getInstance().getParams(mipsMethod);
+			int i = 1; // 0 is 'this'
+			for (AstExpList argIt = params; argIt != null; argIt = argIt.tail) {
+				Temp argTemp = argIt.head.irMe();
+				if (i < paramLabels.size())
+					Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemp));
+				i++;
+			}
+			Ir.getInstance().AddIrCommand(new IrCommandCall(mipsMethod));
+			Temp retval = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsMethod + "_retval"));
+			return retval;
+		}
+
 		/*******************************************************/
 		/* General function call: store arguments into the     */
 		/* function's parameter global variables, then jal.   */
@@ -198,5 +235,14 @@ public class AstExpCall extends AstExp
 		Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsName + "_retval"));
 
 		return retval;
+	}
+
+	private String findMethodClassName(TypeClass tc, String methodName) {
+		if (tc == null) return null;
+		for (TypeClassVarDecList it = tc.dataMembers; it != null; it = it.tail) {
+			if (it.head.name.equals(methodName) && it.head.t instanceof TypeFunction)
+				return tc.name;
+		}
+		return findMethodClassName(tc.father, methodName);
 	}
 }
