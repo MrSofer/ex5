@@ -22,19 +22,48 @@ public class InterferenceGraph {
 
         for (CommandNode currNode : CFG.allNodes) {
 
-            List<Temp> liveTemps = new ArrayList<>(currNode.in);
-
-            for (int i = 0; i < liveTemps.size(); i++) {
-                for (int j = i + 1; j < liveTemps.size(); j++) {
-
-                    Temp t1 = liveTemps.get(i);
-                    Temp t2 = liveTemps.get(j);
-
+            // Add pairwise edges for all temps live at entry of this node
+            List<Temp> liveInTemps = new ArrayList<>(currNode.in);
+            for (int i = 0; i < liveInTemps.size(); i++) {
+                for (int j = i + 1; j < liveInTemps.size(); j++) {
+                    Temp t1 = liveInTemps.get(i);
+                    Temp t2 = liveInTemps.get(j);
                     InterferenceNode node1 = this.allNodes.get(t1);
                     InterferenceNode node2 = this.allNodes.get(t2);
-
                     // Draw the bidirectional edge
                     node1.addEdge(node2);
+                }
+            }
+
+            // Add pairwise edges for all temps live at exit of this node.
+            // This is needed to catch pairs that are simultaneously live at a branch
+            // point but end up in different successors' in-sets.
+            List<Temp> liveOutTemps = new ArrayList<>(currNode.out);
+            for (int i = 0; i < liveOutTemps.size(); i++) {
+                for (int j = i + 1; j < liveOutTemps.size(); j++) {
+                    Temp t1 = liveOutTemps.get(i);
+                    Temp t2 = liveOutTemps.get(j);
+                    InterferenceNode node1 = this.allNodes.get(t1);
+                    InterferenceNode node2 = this.allNodes.get(t2);
+                    if (node1 != null && node2 != null) {
+                        node1.addEdge(node2);
+                    }
+                }
+            }
+
+            // Add edges between the defined temp and every temp live at exit.
+            // The defined temp is already removed from in[node] by liveness analysis,
+            // so it would never get any edges from the in-set loops above.
+            Temp def = currNode.nodeCommand.getDefinedTemp();
+            if (def != null) {
+                InterferenceNode defNode = this.allNodes.get(def);
+                for (Temp t : currNode.out) {
+                    if (!t.equals(def)) {
+                        InterferenceNode tNode = this.allNodes.get(t);
+                        if (tNode != null) {
+                            defNode.addEdge(tNode);
+                        }
+                    }
                 }
             }
         }
