@@ -5,61 +5,31 @@ string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
 	global__virtual_retval: .word 0
 .text
 global_init:
+	jr $ra
+.text
+func_IsPrime:
+.data
+	global_func_IsPrime_retval: .word 0
+.text
+.data
+	global_func_IsPrime_param_p: .word 0
+.text
 .data
 	global_i_0: .word 0
 .text
+	li $t0,2
+	sw $t0,global_i_0
 .data
 	global_j_1: .word 0
 .text
-.data
-	global_p_2: .word 0
-.text
-.data
-	global_start_3: .word 0
-.text
-.data
-	global_end_4: .word 0
-.text
-.data
-	global_isPrime_5: .word 0
-.text
-.data
-	global_copyp_6: .word 0
-.text
-.data
-	global_copyisPrime_7: .word 0
-.text
-	jr $ra
-.text
-user_main:
-.data
-	global_user_main_retval: .word 0
-.text
 	li $t0,2
-	sw $t0,global_p_2
-	li $t0,2
-	sw $t0,global_start_3
-	li $t0,100
-	sw $t0,global_end_4
+	sw $t0,global_j_1
 .text
 Label_1_start:
-	lw $t2,global_p_2
-	lw $t1,global_end_4
-	li $t0,1
-	add $t0,$t1,$t0
-	li $t8,32767
-	bgt $t0,$t8,_sat_max_0
-	li $t9,-32768
-	blt $t0,$t9,_sat_min_0
-	j _sat_end_0
-_sat_max_0:
-	li $t0,32767
-	j _sat_end_0
-_sat_min_0:
-	li $t0,-32768
-_sat_end_0:
-	blt $t2,$t0,Label_11_AssignOne
-	bge $t2,$t0,Label_12_AssignZero
+	lw $t1,global_i_0
+	lw $t0,global_func_IsPrime_param_p
+	blt $t1,$t0,Label_11_AssignOne
+	bge $t1,$t0,Label_12_AssignZero
 .text
 Label_11_AssignOne:
 	li $t0,1
@@ -72,15 +42,11 @@ Label_12_AssignZero:
 Label_10_end:
 	beq $t0,$zero,Label_0_end
 	li $t0,2
-	sw $t0,global_i_0
-	li $t0,2
 	sw $t0,global_j_1
-	li $t0,1
-	sw $t0,global_isPrime_5
 .text
 Label_3_start:
-	lw $t1,global_i_0
-	lw $t0,global_p_2
+	lw $t1,global_j_1
+	lw $t0,global_func_IsPrime_param_p
 	blt $t1,$t0,Label_14_AssignOne
 	bge $t1,$t0,Label_15_AssignZero
 .text
@@ -94,14 +60,23 @@ Label_15_AssignZero:
 .text
 Label_13_end:
 	beq $t0,$zero,Label_2_end
-	li $t0,2
-	sw $t0,global_j_1
-.text
-Label_5_start:
-	lw $t1,global_j_1
-	lw $t0,global_p_2
-	blt $t1,$t0,Label_17_AssignOne
-	bge $t1,$t0,Label_18_AssignZero
+	lw $t1,global_i_0
+	lw $t0,global_j_1
+	mul $t1,$t1,$t0
+	li $t8,32767
+	bgt $t1,$t8,_sat_max_0
+	li $t9,-32768
+	blt $t1,$t9,_sat_min_0
+	j _sat_end_0
+_sat_max_0:
+	li $t1,32767
+	j _sat_end_0
+_sat_min_0:
+	li $t1,-32768
+_sat_end_0:
+	lw $t0,global_func_IsPrime_param_p
+	beq $t1,$t0,Label_17_AssignOne
+	bne $t1,$t0,Label_18_AssignZero
 .text
 Label_17_AssignOne:
 	li $t0,1
@@ -112,47 +87,32 @@ Label_18_AssignZero:
 	j Label_16_end
 .text
 Label_16_end:
-	beq $t0,$zero,Label_4_end
-	lw $t0,global_p_2
-	sw $t0,global_copyp_6
+	beq $t0,$zero,Label_5_end
+	li $t0,0
+	sw $t0,global_func_IsPrime_retval
+	sw $t0,global__virtual_retval
+	jr $ra
 .text
-Label_7_start:
-	lw $t1,global_i_0
-	lw $t0,global_j_1
-	mul $t1,$t1,$t0
+Label_5_end:
+	lw $t1,global_j_1
+	li $t0,1
+	add $t0,$t1,$t0
 	li $t8,32767
-	bgt $t1,$t8,_sat_max_1
+	bgt $t0,$t8,_sat_max_1
 	li $t9,-32768
-	blt $t1,$t9,_sat_min_1
+	blt $t0,$t9,_sat_min_1
 	j _sat_end_1
 _sat_max_1:
-	li $t1,32767
+	li $t0,32767
 	j _sat_end_1
 _sat_min_1:
-	li $t1,-32768
+	li $t0,-32768
 _sat_end_1:
-	lw $t0,global_copyp_6
-	beq $t1,$t0,Label_20_AssignOne
-	bne $t1,$t0,Label_21_AssignZero
+	sw $t0,global_j_1
+	j Label_3_start
 .text
-Label_20_AssignOne:
-	li $t0,1
-	j Label_19_end
-.text
-Label_21_AssignZero:
-	li $t0,0
-	j Label_19_end
-.text
-Label_19_end:
-	beq $t0,$zero,Label_6_end
-	li $t0,0
-	sw $t0,global_isPrime_5
-	li $t0,0
-	sw $t0,global_copyp_6
-	j Label_7_start
-.text
-Label_6_end:
-	lw $t1,global_j_1
+Label_2_end:
+	lw $t1,global_i_0
 	li $t0,1
 	add $t0,$t1,$t0
 	li $t8,32767
@@ -166,11 +126,35 @@ _sat_max_2:
 _sat_min_2:
 	li $t0,-32768
 _sat_end_2:
-	sw $t0,global_j_1
-	j Label_5_start
+	sw $t0,global_i_0
+	j Label_1_start
 .text
-Label_4_end:
-	lw $t1,global_i_0
+Label_0_end:
+	li $t0,1
+	sw $t0,global_func_IsPrime_retval
+	sw $t0,global__virtual_retval
+	jr $ra
+	jr $ra
+.text
+func_PrintPrimes:
+.data
+	global_func_PrintPrimes_retval: .word 0
+.text
+.data
+	global_func_PrintPrimes_param_start: .word 0
+.text
+.data
+	global_func_PrintPrimes_param_end: .word 0
+.text
+.data
+	global_p_2: .word 0
+.text
+	lw $t0,global_func_PrintPrimes_param_start
+	sw $t0,global_p_2
+.text
+Label_7_start:
+	lw $t2,global_p_2
+	lw $t1,global_func_PrintPrimes_param_end
 	li $t0,1
 	add $t0,$t1,$t0
 	li $t8,32767
@@ -184,16 +168,78 @@ _sat_max_3:
 _sat_min_3:
 	li $t0,-32768
 _sat_end_3:
-	sw $t0,global_i_0
-	j Label_3_start
+	blt $t2,$t0,Label_20_AssignOne
+	bge $t2,$t0,Label_21_AssignZero
 .text
-Label_2_end:
-	lw $t0,global_isPrime_5
-	sw $t0,global_copyisPrime_7
+Label_20_AssignOne:
+	li $t0,1
+	j Label_19_end
 .text
-Label_9_start:
-	lw $t0,global_copyisPrime_7
-	beq $t0,$zero,Label_8_end
+Label_21_AssignZero:
+	li $t0,0
+	j Label_19_end
+.text
+Label_19_end:
+	beq $t0,$zero,Label_6_end
+	lw $t8,global_func_PrintPrimes_param_start
+	subu $sp,$sp,4
+	sw $t8,0($sp)
+	lw $t8,global_func_PrintPrimes_param_end
+	subu $sp,$sp,4
+	sw $t8,0($sp)
+	lw $t8,global_p_2
+	subu $sp,$sp,4
+	sw $t8,0($sp)
+	lw $t0,global_p_2
+	sw $t0,global_func_IsPrime_param_p
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal func_IsPrime
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t8,0($sp)
+	addu $sp,$sp,4
+	sw $t8,global_p_2
+	lw $t8,0($sp)
+	addu $sp,$sp,4
+	sw $t8,global_func_PrintPrimes_param_end
+	lw $t8,0($sp)
+	addu $sp,$sp,4
+	sw $t8,global_func_PrintPrimes_param_start
+	lw $t0,global_func_IsPrime_retval
+	beq $t0,$zero,Label_9_end
 	lw $t0,global_p_2
 	move $a0,$t0
 	li $v0,1
@@ -201,11 +247,8 @@ Label_9_start:
 	li $a0,32
 	li $v0,11
 	syscall
-	li $t0,0
-	sw $t0,global_copyisPrime_7
-	j Label_9_start
 .text
-Label_8_end:
+Label_9_end:
 	lw $t1,global_p_2
 	li $t0,1
 	add $t0,$t1,$t0
@@ -221,9 +264,57 @@ _sat_min_4:
 	li $t0,-32768
 _sat_end_4:
 	sw $t0,global_p_2
-	j Label_1_start
+	j Label_7_start
 .text
-Label_0_end:
+Label_6_end:
+	jr $ra
+.text
+user_main:
+.data
+	global_user_main_retval: .word 0
+.text
+	li $t0,2
+	sw $t0,global_func_PrintPrimes_param_start
+	li $t0,100
+	sw $t0,global_func_PrintPrimes_param_end
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal func_PrintPrimes
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t0,global_func_PrintPrimes_retval
 	jr $ra
 main:
 	subu $sp,$sp,4
