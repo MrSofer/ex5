@@ -7,7 +7,7 @@ import temp.Temp;
 public class InterferenceNode {
     Temp value;
     Set<InterferenceNode> edges;
-    int assignedColor;
+    public int assignedColor;
 
     public InterferenceNode(Temp value){
         this.value = value;

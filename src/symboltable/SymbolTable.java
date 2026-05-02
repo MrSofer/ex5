@@ -256,6 +256,7 @@ public class SymbolTable
 			/*************************************/
 			/* [2] How should we handle void ??? */
 			/*************************************/
+			instance.enter("void", TypeVoid.getInstance());
 
 			/***************************************/
 			/* [3] Enter library function PrintInt */

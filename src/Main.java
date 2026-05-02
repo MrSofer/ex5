@@ -6,7 +6,9 @@ import java_cup.runtime.Symbol;
 import ast.*;
 import ir.*;
 import mips.*;
+import regalloc.InterferenceGraph;
 import regalloc.RegisterAllocator;
+import temp.Temp;
 
 public class Main
 {
@@ -65,6 +67,13 @@ public class Main
 
 			/*Register Allocation*/
 			RegisterAllocator allocator = new RegisterAllocator(Ir.getInstance().getCommands());
+			allocator.allocate();
+
+			for (Temp t : InterferenceGraph.getInstance().allNodes.keySet())
+			{
+				System.out.println("Temp: " + t.getSerialNumber());
+				System.out.println("is colored: " + InterferenceGraph.getInstance().allNodes.get(t).assignedColor);
+			}
 
 			/***********************/
 			/* [9] MIPS the Ir ... */

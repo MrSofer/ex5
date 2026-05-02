@@ -11,7 +11,7 @@ public class RegisterAllocator {
 
     public RegisterAllocator(IrCommandList irCommands)
     {
-    this.irCommands = irCommands;
+        this.irCommands = irCommands;
     }
 
     public boolean allocate()
@@ -22,7 +22,8 @@ public class RegisterAllocator {
         // 2. Perform Liveness Analysis (IN and OUT sets)
             Set<Temp> LivenessResults = CFG.LivenessAnalysis();
         // 3. Build Interference Graph
-            InterferenceGraph interferenceGraph = new InterferenceGraph(CFG);
+            InterferenceGraph interferenceGraph = InterferenceGraph.getInstance();
+            interferenceGraph.setControlGraph(CFG);
         // 4. Simplify and Color the graph (using $t0 - $t9)
         if (!interferenceGraph.ColorGraph()) {
             System.out.println("Register Allocation Failed");

@@ -1,13 +1,14 @@
 package regalloc;
 
 import java.util.*;
+
 import temp.Temp;
 
 public class InterferenceGraph {
 
-    Map<Temp, InterferenceNode> allNodes;
+    public Map<Temp, InterferenceNode> allNodes;
 
-    public InterferenceGraph(ControlFlowGraph CFG){
+    public void setControlGraph(ControlFlowGraph CFG){
 
         this.allNodes = new HashMap<>();
 
@@ -92,5 +93,32 @@ public class InterferenceGraph {
 
         return true;
     }
+
+    /**************************************/
+	/* USUAL SINGLETON IMPLEMENTATION ... */
+	/**************************************/
+	private static InterferenceGraph instance = null;
+
+	/*****************************/
+	/* PREVENT INSTANTIATION ... */
+	/*****************************/
+	protected InterferenceGraph() {}
+
+	/******************************/
+	/* GET SINGLETON INSTANCE ... */
+	/******************************/
+	public static InterferenceGraph getInstance()
+	{
+		if (instance == null)
+		{
+			/*******************************/
+			/* [0] The instance itself ... */
+			/*******************************/
+			instance = new InterferenceGraph();
+
+
+		}
+		return instance;
+	}
 
 }
