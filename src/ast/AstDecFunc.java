@@ -195,7 +195,7 @@ public class AstDecFunc extends AstDec
 	{
 		Ir.
 				getInstance().
-				AddIrCommand(new IrCommandLabel("main"));
+				AddIrCommand(new IrCommandLabel(name));
 		if (body != null) body.irMe();
 
 		return null;
