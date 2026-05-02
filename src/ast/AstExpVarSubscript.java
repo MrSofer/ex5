@@ -14,7 +14,6 @@ public class AstExpVarSubscript extends AstExpVar {
 	/******************/
 	public AstExpVarSubscript(AstExpVar var, AstExp subscript, int line)
 	{
-		System.out.print("====================== var -> var [ exp ]\n");
 		this.var = var;
 		this.subscript = subscript;
 		this.line = line;
@@ -28,7 +27,6 @@ public class AstExpVarSubscript extends AstExpVar {
 		/*************************************/
 		/* AST NODE TYPE = AST SUBSCRIPT VAR */
 		/*************************************/
-		System.out.print("AST NODE SUBSCRIPT VAR\n");
 
 		/****************************************/
 		/* RECURSIVELY PRINT VAR + SUBSRIPT ... */
@@ -52,13 +50,11 @@ public class AstExpVarSubscript extends AstExpVar {
 		}
 
 		if (subscriptType != types.TypeInt.getInstance()) {
-			System.out.format(">> ERROR [%d:%d] array subscript must be integral\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 
 		// if subscript is a plain value, ensure it's positive
 		if (subscript instanceof AstExpInt intExp && intExp.value < 0) {
-			System.out.format(">> ERROR [%d:%d] array subscript must be non-negative\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
@@ -67,7 +63,6 @@ public class AstExpVarSubscript extends AstExpVar {
 			types.TypeArray arrayType = (types.TypeArray) varType;
 			return arrayType.elementType;
 		}
-		System.out.format(">> ERROR [%d:%d] subscript must be on array type\n",line,line);
 		throw new Error("ERROR(" + line + ")");
 	}
 
@@ -84,21 +79,32 @@ public class AstExpVarSubscript extends AstExpVar {
 		Temp idxTemp = subscript.irMe();
 
 		/*****************************/
-		/* [3] Scale index by 4      */
+		/* [3] Array bounds check    */
+		/*****************************/
+		Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(baseTemp, idxTemp));
+
+		/*****************************/
+		/* [4] Scale index by 4 and skip size header (offset by 4) */
 		/*****************************/
 		Temp four = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 		Temp offset = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandBinopMulIntegers(offset, idxTemp, four));
+		Ir.getInstance().AddIrCommand(new IrCommandPtrMul(offset, idxTemp, four));
+
+		// Add 4 to skip the size header
+		Temp headerSkip = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IRcommandConstInt(headerSkip, 4));
+		Temp totalOffset = TempFactory.getInstance().getFreshTemp();
+		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(totalOffset, offset, headerSkip));
 
 		/*****************************/
-		/* [4] Compute element addr  */
+		/* [5] Compute element addr  */
 		/*****************************/
 		Temp addr = TempFactory.getInstance().getFreshTemp();
-		Ir.getInstance().AddIrCommand(new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+		Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, baseTemp, totalOffset));
 
 		/*****************************/
-		/* [5] Load value at addr    */
+		/* [6] Load value at addr    */
 		/*****************************/
 		Temp dst = TempFactory.getInstance().getFreshTemp();
 		Ir.getInstance().AddIrCommand(new IrCommandLoadIndirect(dst, addr));

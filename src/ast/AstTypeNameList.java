@@ -31,7 +31,6 @@ public class AstTypeNameList extends AstNode {
         /**************************************/
         /* AST NODE TYPE = AST TYPE NAME LIST */
         /**************************************/
-        System.out.print("AST TYPE NAME LIST\n");
 
         /*************************************/
         /* RECURSIVELY PRINT HEAD + TAIL ... */

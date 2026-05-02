@@ -16,6 +16,16 @@ public class RegisterAllocator {
 
     public boolean allocate()
     {
+        // Check if any function has more than 8 parameters (not counting 'this')
+        for (IrCommandList it = irCommands; it != null; it = it.tail) {
+            if (it.head instanceof IrCommandLabel) {
+                String label = ((IrCommandLabel)it.head).getLabelName();
+                java.util.List<String> params = ir.FuncParamTable.getInstance().getParams(label);
+                if (params != null && params.size() >= 11) {
+                    throw new Error("Register Allocation Failed");
+                }
+            }
+        }
         // 1. Build Control Flow Graph (CFG) (done by klierchoo and talso)
             ControlFlowGraph CFG = new ControlFlowGraph();
             CFG.build(irCommands);
@@ -26,10 +36,8 @@ public class RegisterAllocator {
             interferenceGraph.setControlGraph(CFG);
         // 4. Simplify and Color the graph (using $t0 - $t9)
         if (!interferenceGraph.ColorGraph()) {
-            System.out.println("Register Allocation Failed");
-            System.exit(0);
+            throw new Error("Register Allocation Failed");
         }
-        System.out.println("colored graph!!");
         // 5. Update physicalRegister field in Temp objects
 
         return true;

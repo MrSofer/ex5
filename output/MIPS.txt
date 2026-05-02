@@ -3,264 +3,338 @@ string_access_violation: .asciiz "Access Violation"
 string_illegal_div_by_0: .asciiz "Illegal Division By Zero"
 string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
 .text
-user_main:
+global_init:
+	jr $ra
+.text
+func_recurse:
 .data
-	global_user_main_retval: .word 721
+	global_func_recurse_retval: .word 0
 .text
 .data
-	global_arr_0: .word 721
+	global_func_recurse_param_n: .word 0
 .text
-	li $t1,7
-	li $t0,4
+.data
+	global_a_0: .word 0
+.text
+	lw $t0,global_func_recurse_param_n
+	sw $t0,global_a_0
+.data
+	global_b_1: .word 0
+.text
+	lw $t1,global_func_recurse_param_n
+	li $t0,1
+	add $t0,$t1,$t0
+	li $t8,32767
+	bgt $t0,$t8,_sat_max_0
+	li $t9,-32768
+	blt $t0,$t9,_sat_min_0
+	j _sat_end_0
+_sat_max_0:
+	li $t0,32767
+	j _sat_end_0
+_sat_min_0:
+	li $t0,-32768
+_sat_end_0:
+	sw $t0,global_b_1
+.data
+	global_c_2: .word 0
+.text
+	lw $t1,global_func_recurse_param_n
+	li $t0,2
 	mul $t0,$t1,$t0
-	move $a0,$t0
-	li $v0,9
-	syscall
-	move $t0,$v0
-	sw $t0,global_arr_0
-	lw $t2,global_arr_0
-	li $t1,0
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,34
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,1
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,12
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,2
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,-600
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,3
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,-400
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,4
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,70
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,5
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,30
-	sw $t0,0($t1)
-	lw $t2,global_arr_0
-	li $t1,6
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	li $t0,-580
-	sw $t0,0($t1)
-	lw $t0,global_arr_0
-	sw $t0,global_BubbleSort_param_arr
-	li $t0,7
-	sw $t0,global_BubbleSort_param_size
+	li $t8,32767
+	bgt $t0,$t8,_sat_max_1
+	li $t9,-32768
+	blt $t0,$t9,_sat_min_1
+	j _sat_end_1
+_sat_max_1:
+	li $t0,32767
+	j _sat_end_1
+_sat_min_1:
+	li $t0,-32768
+_sat_end_1:
+	sw $t0,global_c_2
+.data
+	global_d_3: .word 0
+.text
+	lw $t1,global_a_0
+	lw $t0,global_b_1
+	add $t1,$t1,$t0
+	li $t8,32767
+	bgt $t1,$t8,_sat_max_2
+	li $t9,-32768
+	blt $t1,$t9,_sat_min_2
+	j _sat_end_2
+_sat_max_2:
+	li $t1,32767
+	j _sat_end_2
+_sat_min_2:
+	li $t1,-32768
+_sat_end_2:
+	lw $t0,global_c_2
+	add $t0,$t1,$t0
+	li $t8,32767
+	bgt $t0,$t8,_sat_max_3
+	li $t9,-32768
+	blt $t0,$t9,_sat_min_3
+	j _sat_end_3
+_sat_max_3:
+	li $t0,32767
+	j _sat_end_3
+_sat_min_3:
+	li $t0,-32768
+_sat_end_3:
+	sw $t0,global_d_3
+	lw $t1,global_func_recurse_param_n
+	li $t0,2
+	blt $t1,$t0,Label_3_AssignOne
+	bge $t1,$t0,Label_4_AssignZero
+.text
+Label_3_AssignOne:
+	li $t0,1
+	j Label_2_end
+.text
+Label_4_AssignZero:
+	li $t0,0
+	j Label_2_end
+.text
+Label_2_end:
+	beq $t0,$zero,Label_1_end
+	lw $t0,global_d_3
+	sw $t0,global_func_recurse_retval
+	jr $ra
+.text
+Label_1_end:
+.data
+	global_sub_4: .word 0
+.text
+	lw $t8,global_func_recurse_param_n
+	subu $sp,$sp,4
+	sw $t8,0($sp)
+	lw $t1,global_func_recurse_param_n
+	li $t0,1
+	sub $t0,$t1,$t0
+	li $t8,32767
+	bgt $t0,$t8,_sat_max_4
+	li $t9,-32768
+	blt $t0,$t9,_sat_min_4
+	j _sat_end_4
+_sat_max_4:
+	li $t0,32767
+	j _sat_end_4
+_sat_min_4:
+	li $t0,-32768
+_sat_end_4:
+	sw $t0,global_func_recurse_param_n
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
 	subu $sp,$sp,4
 	sw $ra,0($sp)
-	jal BubbleSort
+	jal func_recurse
 	lw $ra,0($sp)
 	addu $sp,$sp,4
-	lw $t0,global_BubbleSort_retval
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t8,0($sp)
+	addu $sp,$sp,4
+	sw $t8,global_func_recurse_param_n
+	lw $t0,global_func_recurse_retval
+	sw $t0,global_sub_4
+	lw $t1,global_d_3
+	lw $t0,global_sub_4
+	add $t0,$t1,$t0
+	li $t8,32767
+	bgt $t0,$t8,_sat_max_5
+	li $t9,-32768
+	blt $t0,$t9,_sat_min_5
+	j _sat_end_5
+_sat_max_5:
+	li $t0,32767
+	j _sat_end_5
+_sat_min_5:
+	li $t0,-32768
+_sat_end_5:
+	sw $t0,global_func_recurse_retval
+	jr $ra
+	jr $ra
+.text
+user_main:
 .data
-	global_i_1: .word 721
+	global_user_main_retval: .word 0
 .text
-	li $t0,0
-	sw $t0,global_i_1
-.text
-Label_1_start:
-	lw $t1,global_i_1
-	li $t0,7
-	blt $t1,$t0,Label_9_AssignOne
-	bge $t1,$t0,Label_10_AssignZero
-.text
-Label_9_AssignOne:
-	li $t0,1
-	j Label_8_end
-.text
-Label_10_AssignZero:
-	li $t0,0
-	j Label_8_end
-.text
-Label_8_end:
-	beq $t0,$zero,Label_0_end
-	lw $t2,global_arr_0
-	lw $t1,global_i_1
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t0,$t2,$t0
-	lw $t0,0($t0)
+	li $t0,5
+	sw $t0,global_func_recurse_param_n
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal func_recurse
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t0,global_func_recurse_retval
 	move $a0,$t0
 	li $v0,1
 	syscall
 	li $a0,32
 	li $v0,11
 	syscall
-	lw $t1,global_i_1
 	li $t0,1
-	add $t0,$t1,$t0
-	sw $t0,global_i_1
-	j Label_1_start
-.text
-Label_0_end:
-	jr $ra
-.text
-BubbleSort:
-.data
-	global_BubbleSort_retval: .word 721
-.text
-.data
-	global_BubbleSort_param_arr: .word 721
-.text
-.data
-	global_BubbleSort_param_size: .word 721
-.text
-.data
-	global_i_2: .word 721
-.text
-	li $t0,0
-	sw $t0,global_i_2
-.data
-	global_j_3: .word 721
-.text
-	li $t0,0
-	sw $t0,global_j_3
-.data
-	global_min_4: .word 721
-.text
-	li $t0,32767
-	sw $t0,global_min_4
-.data
-	global_minIndex_5: .word 721
-.text
-	li $t0,-1
-	sw $t0,global_minIndex_5
-.data
-	global_temp_6: .word 721
-.text
-	li $t0,0
-	sw $t0,global_temp_6
-.text
-Label_3_start:
-	lw $t1,global_i_2
-	lw $t0,global_BubbleSort_param_size
-	blt $t1,$t0,Label_12_AssignOne
-	bge $t1,$t0,Label_13_AssignZero
-.text
-Label_12_AssignOne:
-	li $t0,1
-	j Label_11_end
-.text
-Label_13_AssignZero:
-	li $t0,0
-	j Label_11_end
-.text
-Label_11_end:
-	beq $t0,$zero,Label_2_end
-	lw $t0,global_i_2
-	sw $t0,global_j_3
-	li $t0,32767
-	sw $t0,global_min_4
-.text
-Label_5_start:
-	lw $t1,global_j_3
-	lw $t0,global_BubbleSort_param_size
-	blt $t1,$t0,Label_15_AssignOne
-	bge $t1,$t0,Label_16_AssignZero
-.text
-Label_15_AssignOne:
-	li $t0,1
-	j Label_14_end
-.text
-Label_16_AssignZero:
-	li $t0,0
-	j Label_14_end
-.text
-Label_14_end:
-	beq $t0,$zero,Label_4_end
-	lw $t2,global_BubbleSort_param_arr
-	lw $t1,global_j_3
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t0,$t2,$t0
-	lw $t1,0($t0)
-	lw $t0,global_min_4
-	blt $t1,$t0,Label_18_AssignOne
-	bge $t1,$t0,Label_19_AssignZero
-.text
-Label_18_AssignOne:
-	li $t0,1
-	j Label_17_end
-.text
-Label_19_AssignZero:
-	li $t0,0
-	j Label_17_end
-.text
-Label_17_end:
-	beq $t0,$zero,Label_7_end
-	lw $t2,global_BubbleSort_param_arr
-	lw $t1,global_j_3
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t0,$t2,$t0
-	lw $t0,0($t0)
-	sw $t0,global_min_4
-	lw $t0,global_j_3
-	sw $t0,global_minIndex_5
-.text
-Label_7_end:
-	lw $t1,global_j_3
-	li $t0,1
-	add $t0,$t1,$t0
-	sw $t0,global_j_3
-	j Label_5_start
-.text
-Label_4_end:
-	lw $t2,global_BubbleSort_param_arr
-	lw $t1,global_i_2
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t0,$t2,$t0
-	lw $t0,0($t0)
-	sw $t0,global_temp_6
-	lw $t2,global_BubbleSort_param_arr
-	lw $t1,global_i_2
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	lw $t0,global_min_4
-	sw $t0,0($t1)
-	lw $t2,global_BubbleSort_param_arr
-	lw $t1,global_minIndex_5
-	li $t0,4
-	mul $t0,$t1,$t0
-	add $t1,$t2,$t0
-	lw $t0,global_temp_6
-	sw $t0,0($t1)
-	lw $t1,global_i_2
-	li $t0,1
-	add $t0,$t1,$t0
-	sw $t0,global_i_2
-	j Label_3_start
-.text
-Label_2_end:
+	sw $t0,global_func_recurse_param_n
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal func_recurse
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t0,global_func_recurse_retval
+	move $a0,$t0
+	li $v0,1
+	syscall
+	li $a0,32
+	li $v0,11
+	syscall
+	li $t0,3
+	sw $t0,global_func_recurse_param_n
+	subu $sp,$sp,4
+	sw $t0,0($sp)
+	subu $sp,$sp,4
+	sw $t1,0($sp)
+	subu $sp,$sp,4
+	sw $t2,0($sp)
+	subu $sp,$sp,4
+	sw $t3,0($sp)
+	subu $sp,$sp,4
+	sw $t4,0($sp)
+	subu $sp,$sp,4
+	sw $t5,0($sp)
+	subu $sp,$sp,4
+	sw $t6,0($sp)
+	subu $sp,$sp,4
+	sw $t7,0($sp)
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal func_recurse
+	lw $ra,0($sp)
+	addu $sp,$sp,4
+	lw $t7,0($sp)
+	addu $sp,$sp,4
+	lw $t6,0($sp)
+	addu $sp,$sp,4
+	lw $t5,0($sp)
+	addu $sp,$sp,4
+	lw $t4,0($sp)
+	addu $sp,$sp,4
+	lw $t3,0($sp)
+	addu $sp,$sp,4
+	lw $t2,0($sp)
+	addu $sp,$sp,4
+	lw $t1,0($sp)
+	addu $sp,$sp,4
+	lw $t0,0($sp)
+	addu $sp,$sp,4
+	lw $t0,global_func_recurse_retval
+	move $a0,$t0
+	li $v0,1
+	syscall
+	li $a0,32
+	li $v0,11
+	syscall
 	jr $ra
 main:
+	subu $sp,$sp,4
+	sw $ra,0($sp)
+	jal global_init
+	lw $ra,0($sp)
+	addu $sp,$sp,4
 	jal user_main
 	li $v0,10
 	syscall

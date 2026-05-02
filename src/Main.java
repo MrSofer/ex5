@@ -19,7 +19,6 @@ public class Main
 		Symbol s;
 		AstDecList ast;
 		FileReader fileReader;
-		PrintWriter fileWriter = null;
 		String inputFileName = argv[0];
 		String outputFileName = argv[1];
 
@@ -30,94 +29,84 @@ public class Main
 			/********************************/
 			fileReader = new FileReader(inputFileName);
 
-			/********************************/
-			/* [2] Initialize a file writer */
-			/********************************/
-			fileWriter = new PrintWriter(outputFileName);
-
 			/******************************/
-			/* [3] Initialize a new lexer */
+			/* [2] Initialize a new lexer */
 			/******************************/
 			l = new Lexer(fileReader);
 
 			/*******************************/
-			/* [4] Initialize a new parser */
+			/* [3] Initialize a new parser */
 			/*******************************/
 			p = new Parser(l);
 
 			/***********************************/
-			/* [5] 3 ... 2 ... 1 ... Parse !!! */
+			/* [4] 3 ... 2 ... 1 ... Parse !!! */
 			/***********************************/
 			ast = (AstDecList) p.parse().value;
 
-			/*************************/
-			/* [6] Print the AST ... */
-			/*************************/
-			ast.printMe();
-
 			/**************************/
-			/* [7] Semant the AST ... */
+			/* [5] Semant the AST ... */
 			/**************************/
 			ast.semantMe();
 
 			/**********************/
-			/* [8] Ir the AST ... */
+			/* [6] Ir the AST ... */
 			/**********************/
-			// Pre-register all function parameters so call sites can resolve them
-			// before the function body IR is generated (handles forward references)
+			// Build vtables before preRegisterParams so override bases can be determined
+			VtableRegistry.getInstance().buildAll(ast);
+
 			for (ast.AstDecList it = ast; it != null; it = it.tail)
 			{
 				if (it.head instanceof AstDecFunc f)
-				{
 					f.preRegisterParams();
-				}
+				else if (it.head instanceof AstDecClass c)
+					c.preRegisterParams();
 			}
-			ast.irMe();
+
+			// Initialize MipsGenerator before irMeTopLevel so vtable data can be emitted
+			MipsGenerator.init(outputFileName);
+			ast.irMeTopLevel();
 
 			/*Register Allocation*/
 			RegisterAllocator allocator = new RegisterAllocator(Ir.getInstance().getCommands());
 			allocator.allocate();
 
-			for (Temp t : InterferenceGraph.getInstance().allNodes.keySet())
-			{
-				if (t == null) continue;
-				System.out.println("Temp: " + t.getSerialNumber());
-				System.out.println("is colored: " + InterferenceGraph.getInstance().allNodes.get(t).assignedColor);
-			}
-
 			/***********************/
-			/* [9] MIPS the Ir ... */
+			/* [7] MIPS the Ir ... */
 			/***********************/
 			Ir.getInstance().mipsMe();
 
-			/**************************************/
-			/* [10] Finalize AST GRAPHIZ DOT file */
-			/**************************************/
-			AstGraphviz.getInstance().finalizeFile();
 
 			/***************************/
-			/* [11] Finalize MIPS file */
+			/* [9] Finalize MIPS file */
 			/***************************/
 			MipsGenerator.getInstance().finalizeFile();
-
-			/**************************/
-			/* [12] Close output file */
-			/**************************/
-			fileWriter.close();
 		}
 
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			try {
+				PrintWriter errWriter = new PrintWriter(outputFileName);
+				errWriter.print("ERROR");
+				errWriter.close();
+			} catch (Exception ex) {}
 		}
 		catch (Error e)
 		{
 			String emsg = e.getMessage();
-			String finalError = (emsg == null || !emsg.startsWith("ERROR(")) ? "ERROR" : emsg;
-			System.out.println(finalError);
-
+			String finalError;
+			if (emsg != null && emsg.startsWith("ERROR(")) {
+				finalError = emsg;
+			} else if (emsg != null && emsg.equals("Register Allocation Failed")) {
+				finalError = "Register Allocation Failed";
+			} else {
+				finalError = "ERROR";
+			}
 			try {
-				if (fileWriter != null) fileWriter.close();
+				PrintWriter errWriter = new PrintWriter(outputFileName);
+				errWriter.print(finalError);
+				errWriter.close();
 			} catch (Exception ex) {}
 		}
 	}

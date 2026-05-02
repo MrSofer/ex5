@@ -33,7 +33,6 @@ public class AstDecList extends AstNode
 		/********************************/
 		/* AST NODE TYPE = AST DEC LIST */
 		/********************************/
-		System.out.print("AST NODE DEC LIST\n");
 
 		/*************************************/
 		/* RECURSIVELY PRINT HEAD + TAIL ... */
@@ -78,6 +77,39 @@ public class AstDecList extends AstNode
 		else {
 			if (head != null) head.irMe();
 			if (tail != null) tail.irMe();
+		}
+		return null;
+	}
+
+	public Temp irMeTopLevel()
+	{
+		// Step 0a: Pre-register all class data members for field init (needed before global_init)
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecClass c) {
+				ClassRegistry.getInstance().register(c.name, c.dataMembers);
+			}
+		}
+
+		// Step 0b: Emit vtable data (vtables already built in Main.java before preRegisterParams)
+		VtableRegistry.getInstance().emitVtables();
+
+		// Step 1: global_init function wrapping all global var declarations
+		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandLabel("global_init"));
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head != null && !(it.head instanceof AstDecFunc) && !(it.head instanceof AstDecClass)) {
+				it.head.irMe();
+			}
+		}
+		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandReturn());
+
+		// Step 2: emit class methods
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecClass c) c.irMe();
+		}
+
+		// Step 3: emit regular functions
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecFunc f) f.irMe();
 		}
 		return null;
 	}

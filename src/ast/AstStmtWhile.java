@@ -30,7 +30,6 @@ public class AstStmtWhile extends AstStmt
 
 	public void printMe()
 	{
-		System.out.print("AST NODE STMT WHILE\n");
 		if (cond != null) cond.printMe();
 		if (body != null) body.printMe();
 	}
@@ -42,7 +41,6 @@ public class AstStmtWhile extends AstStmt
 		/****************************/
 		if (cond.semantMe() != TypeInt.getInstance())
 		{
-			System.out.format(">> ERROR [%d:%d] condition inside WHILE is not integral\n",line,line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		

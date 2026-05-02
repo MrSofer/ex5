@@ -90,19 +90,50 @@ public class AstExpNew extends AstExp
         if (arraySize != null)
         {
             /******************************************/
-            /* Array allocation: sbrk(size * 4) bytes */
+            /* Array allocation: sbrk((size+1)*4) bytes */
+            /* Layout: [size, elem0, elem1, ...]       */
             /******************************************/
             Temp sizeTemp = arraySize.irMe();
+
+            // Allocate (size+1) words: one extra for the size header
+            Temp one = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IRcommandConstInt(one, 1));
+            Temp sizePlusOne = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(
+                    new IrCommandBinopAddIntegers(sizePlusOne, sizeTemp, one));
 
             Temp four = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 
             Temp byteSize = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(
-                    new IrCommandBinopMulIntegers(byteSize, sizeTemp, four));
+                    new IrCommandPtrMul(byteSize, sizePlusOne, four));
 
             Temp result = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(byteSize, result));
+
+            // Store array size in first word
+            Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(result, sizeTemp));
+
+            return result;
+        }
+        // Class allocation
+        types.Type t = symboltable.SymbolTable.getInstance().find(typeName);
+        if (t instanceof types.TypeClass tc) {
+            int totalFields = ast.ClassContext.countNonMethodFields(tc);
+            int byteSize2 = (totalFields + 1) * 4; // +1 for vtable pointer
+            Temp sizeTemp2 = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IRcommandConstInt(sizeTemp2, byteSize2));
+            Temp result = TempFactory.getInstance().getFreshTemp();
+            Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(sizeTemp2, result));
+            // Store vtable pointer at offset 0 if class has a vtable
+            if (ast.VtableRegistry.getInstance().hasVtable(tc.name)) {
+                Temp vtablePtrTemp = TempFactory.getInstance().getFreshTemp();
+                Ir.getInstance().AddIrCommand(new ir.IrCommandLoadAddr(vtablePtrTemp, tc.name + "_vtable"));
+                Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(result, vtablePtrTemp));
+            }
+            // Initialize fields
+            ast.ClassContext.emitFieldInit(tc, result);
             return result;
         }
         return null;

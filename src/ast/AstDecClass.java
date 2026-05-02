@@ -54,7 +54,6 @@ public class AstDecClass extends AstDec
 		/*************************************/
 		/* RECURSIVELY PRINT HEAD + TAIL ... */
 		/*************************************/
-		System.out.format("CLASS DEC = %s\n",name);
 		if (dataMembers != null) dataMembers.printMe();
 		
 		/***************************************/
@@ -82,12 +81,10 @@ public class AstDecClass extends AstDec
 			Type fatherType = SymbolTable.getInstance().find(father);
 			if (fatherType == null)
 			{
-				System.out.format(">> ERROR [%d:%d] class %s extends non-existing class %s\n",line,line,name,father);
 				throw new Error("ERROR(" + line + ")");
 			}
 			if (!fatherType.isClass())
 			{
-				System.out.format(">> ERROR [%d:%d] class %s extends non-class type %s\n",line,line,name,father);
 				throw new Error("ERROR(" + line + ")");
 			}
 			fatherClass = (TypeClass) fatherType;
@@ -133,8 +130,6 @@ public class AstDecClass extends AstDec
                     if (fatherClass != null) {
                         Type fatherMemberType = findMemberInClass(fatherClass, memberName);
                         if (fatherMemberType != null) {
-                            System.out.format(">> ERROR [%d:%d] field %s in class %s illegally shadows a member in parent class %s\n",
-                                memberLine, memberLine, memberName, name, father);
                             throw new Error("ERROR(" + memberLine + ")");
                         }
                     }
@@ -150,17 +145,13 @@ public class AstDecClass extends AstDec
                         Type fatherMemberType = findMemberInClass(fatherClass, memberName);
                         if (fatherMemberType != null && !(fatherMemberType instanceof TypeFunction)) {
                             // The member is found in the father class AND it's not a function (i.e., it's a variable)
-                            System.out.format(">> ERROR [%d:%d] method %s in class %s illegally shadows a field in parent class %s\n",
-                                memberLine, memberLine, memberName, name, father);
                             throw new Error("ERROR(" + memberLine + ")");
                         }
                     }
 
 					// illegal overloading check
 					if (memberList != null && memberList.containsFunction(memberName)) {
-						System.out.format(">> ERROR [%d:%d] method %s in class %s illegally overloads a function\n",
-                                memberLine, memberLine, memberName, name);
-                            throw new Error("ERROR(" + memberLine + ")");
+						throw new Error("ERROR(" + memberLine + ")");
 					}
 				}
 
@@ -194,8 +185,6 @@ public class AstDecClass extends AstDec
 						if (fatherMethod != null) {
 							// Check if signatures match (return type and parameters)
 							if (!methodSignaturesMatch(childMethod, fatherMethod)) {
-								System.out.format(">> ERROR [%d:%d] method %s has different signature than parent class method\n",
-									funcDec.line, funcDec.line, funcDec.name);
 								throw new Error("ERROR(" + funcDec.line + ")");
 							}
 						}
@@ -288,9 +277,42 @@ public class AstDecClass extends AstDec
 	}
 
 	private void printMembers(TypeClassVarDecList memberList) {
-		if (memberList.head != null)
-			System.out.println(memberList.head.t.name + ": " + memberList.head.name);
 		if (memberList.tail != null)
 			printMembers(memberList.tail);
+	}
+
+	public void preRegisterParams() {
+		String prev = AstDecFunc.getCurrentClassContext();
+		AstDecFunc.setCurrentClassContext(name);
+		if (dataMembers != null) {
+			for (AstDecList it = dataMembers; it != null; it = it.tail) {
+				if (it.head instanceof AstDecFunc f) {
+					String rootOwner = VtableRegistry.getInstance().getRootMethodOwner(name, f.name);
+					String rootPrefix = (rootOwner != null ? rootOwner : name) + "_" + f.name;
+					AstDecFunc.setOverrideParamPrefix(rootPrefix);
+					f.preRegisterParams();
+					AstDecFunc.setOverrideParamPrefix(null);
+				}
+			}
+		}
+		AstDecFunc.setCurrentClassContext(prev);
+	}
+
+	public temp.Temp irMe() {
+		String prev = AstDecFunc.getCurrentClassContext();
+		AstDecFunc.setCurrentClassContext(name);
+		if (dataMembers != null) {
+			for (AstDecList it = dataMembers; it != null; it = it.tail) {
+				if (it.head instanceof AstDecFunc f) {
+					String rootOwner = VtableRegistry.getInstance().getRootMethodOwner(name, f.name);
+					String rootPrefix = (rootOwner != null ? rootOwner : name) + "_" + f.name;
+					AstDecFunc.setOverrideParamPrefix(rootPrefix);
+					f.irMe();
+					AstDecFunc.setOverrideParamPrefix(null);
+				}
+			}
+		}
+		AstDecFunc.setCurrentClassContext(prev);
+		return null;
 	}
 }

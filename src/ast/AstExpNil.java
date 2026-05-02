@@ -14,11 +14,6 @@ public class AstExpNil extends AstExp
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== exp -> NIL\n");
-
 		this.line = line;
 	}
 
@@ -30,7 +25,6 @@ public class AstExpNil extends AstExp
 		/*******************************/
 		/* AST NODE TYPE = AST NIL EXP */
 		/*******************************/
-		System.out.print("AST NODE NIL\n");
 
 		/*********************************/
 		/* Print to AST GRAPHVIZ DOT file */
@@ -43,5 +37,12 @@ public class AstExpNil extends AstExp
 	public types.Type semantMe()
 	{
 		return types.TypeNil.getInstance();
+	}
+
+	public temp.Temp irMe()
+	{
+		temp.Temp t = temp.TempFactory.getInstance().getFreshTemp();
+		ir.Ir.getInstance().AddIrCommand(new ir.IRcommandConstInt(t, 0));
+		return t;
 	}
 }

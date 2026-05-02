@@ -67,6 +67,21 @@ public class AstExpVarSimple extends AstExpVar {
 
     public Temp irMe()
 	{
+		if (ast.ClassContext.getInstance().isInClassMethod()) {
+			types.TypeClass tc = ast.ClassContext.getInstance().getCurrentClassType();
+			int fieldOffset = ast.ClassContext.getFieldOffset(tc, name);
+			if (fieldOffset >= 0) {
+				Temp thisPtr = TempFactory.getInstance().getFreshTemp();
+				Ir.getInstance().AddIrCommand(new IrCommandLoad(thisPtr, ast.ClassContext.getInstance().getThisLabel()));
+				Temp offTemp = TempFactory.getInstance().getFreshTemp();
+				Ir.getInstance().AddIrCommand(new ir.IRcommandConstInt(offTemp, fieldOffset));
+				Temp addr = TempFactory.getInstance().getFreshTemp();
+				Ir.getInstance().AddIrCommand(new ir.IrCommandPtrAdd(addr, thisPtr, offTemp));
+				Temp result = TempFactory.getInstance().getFreshTemp();
+				Ir.getInstance().AddIrCommand(new ir.IrCommandLoadIndirect(result, addr));
+				return result;
+			}
+		}
 		Temp t = TempFactory.getInstance().getFreshTemp();
 		String uniqueLabel = IrVarTable.getInstance().find(name);
 		String label = (uniqueLabel != null) ? uniqueLabel : name;

@@ -24,11 +24,6 @@ public class AstStmtAssign extends AstStmt
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
-
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
 		/*******************************/
@@ -43,11 +38,6 @@ public class AstStmtAssign extends AstStmt
 		/* SET A UNIQUE SERIAL NUMBER */
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
-
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		System.out.print("====================== stmt -> var ASSIGN exp SEMICOLON\n");
 
 		/*******************************/
 		/* COPY INPUT DATA MENBERS ... */
@@ -65,7 +55,6 @@ public class AstStmtAssign extends AstStmt
 		/********************************************/
 		/* AST NODE TYPE = AST ASSIGNMENT STATEMENT */
 		/********************************************/
-		System.out.print("AST NODE ASSIGN STMT\n");
 
 		/***********************************/
 		/* RECURSIVELY PRINT VAR + EXP ... */
@@ -145,8 +134,6 @@ public class AstStmtAssign extends AstStmt
 
 		if (!typesMatch)
 		{
-			System.out.format(">> ERROR [%d:%d] type mismatch for var of type %s := exp of type %s\n",line,line,
-					t1 != null ? t1.name : "null", t2 != null ? t2.name : "null");
 			throw new Error("ERROR(" + line + ")");
 		}
 		return null;
@@ -163,35 +150,73 @@ public class AstStmtAssign extends AstStmt
 		{
 			/*****************************************************/
 			/* Array subscript store: arr[idx] := exp            */
-			/* 1. Load base pointer                              */
-			/* 2. Load index, scale by 4, compute address        */
-			/* 3. Store value at computed address                */
 			/*****************************************************/
 			Temp baseTemp = subscriptVar.var.irMe();
 			Temp idxTemp  = subscriptVar.subscript.irMe();
+
+			// Bounds check
+			Ir.getInstance().AddIrCommand(new IrCommandBoundsCheck(baseTemp, idxTemp));
 
 			Temp four = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(new IRcommandConstInt(four, 4));
 			Temp offset = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(
-					new IrCommandBinopMulIntegers(offset, idxTemp, four));
+					new IrCommandPtrMul(offset, idxTemp, four));
+
+			// Add 4 to skip the size header
+			Temp headerSkip = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IRcommandConstInt(headerSkip, 4));
+			Temp totalOffset = TempFactory.getInstance().getFreshTemp();
+			Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(totalOffset, offset, headerSkip));
 
 			Temp addr = TempFactory.getInstance().getFreshTemp();
 			Ir.getInstance().AddIrCommand(
-					new IrCommandBinopAddIntegers(addr, baseTemp, offset));
+					new IrCommandPtrAdd(addr, baseTemp, totalOffset));
 
 			Temp src = exp.irMe();
 			Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
 		}
-		else if (var instanceof AstExpVarSimple)
+		else if (var instanceof AstExpVarField fieldVar)
 		{
+			Temp objPtr = fieldVar.var.irMe();
+			// Null check before field write
+			Ir.getInstance().AddIrCommand(new IrCommandNullCheck(objPtr));
 			Temp src = exp.irMe();
-			String varName = ((AstExpVarSimple) var).name;
+		types.TypeClass tc = fieldVar.getCachedObjectType();
+			if (tc != null) {
+				int fieldOffset = ast.ClassContext.getFieldOffset(tc, fieldVar.fieldName);
+				if (fieldOffset >= 0) {
+					Temp offTemp = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IRcommandConstInt(offTemp, fieldOffset));
+					Temp addr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, objPtr, offTemp));
+					Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
+				}
+			}
+		}
+		else if (var instanceof AstExpVarSimple simpleVar)
+		{
+			String varName = simpleVar.name;
+			if (ast.ClassContext.getInstance().isInClassMethod()) {
+				types.TypeClass tc = ast.ClassContext.getInstance().getCurrentClassType();
+				int fieldOffset = ast.ClassContext.getFieldOffset(tc, varName);
+				if (fieldOffset >= 0) {
+					Temp src = exp.irMe();
+					Temp thisPtr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandLoad(thisPtr, ast.ClassContext.getInstance().getThisLabel()));
+					Temp offTemp = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IRcommandConstInt(offTemp, fieldOffset));
+					Temp addr = TempFactory.getInstance().getFreshTemp();
+					Ir.getInstance().AddIrCommand(new IrCommandPtrAdd(addr, thisPtr, offTemp));
+					Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(addr, src));
+					return null;
+				}
+			}
+			Temp src = exp.irMe();
 			String uniqueLabel = IrVarTable.getInstance().find(varName);
 			String label = (uniqueLabel != null) ? uniqueLabel : varName;
 			Ir.getInstance().AddIrCommand(new IrCommandStore(label, src));
 		}
-		// Field access stores not yet implemented in IR generation
 		return null;
 	}
 }

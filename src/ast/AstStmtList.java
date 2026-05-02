@@ -21,12 +21,6 @@ public class AstStmtList extends AstNode
 		/******************************/
 		serialNumber = AstNodeSerialNumber.getFresh();
 
-		/***************************************/
-		/* PRINT CORRESPONDING DERIVATION RULE */
-		/***************************************/
-		if (tail != null) System.out.print("====================== stmts -> stmt stmts\n");
-		if (tail == null) System.out.print("====================== stmts -> stmt      \n");
-
 		/*******************************/
 		/* COPY INPUT DATA MEMBERS ... */
 		/*******************************/
@@ -42,7 +36,6 @@ public class AstStmtList extends AstNode
 		/**************************************/
 		/* AST NODE TYPE = AST STATEMENT LIST */
 		/**************************************/
-		System.out.print("AST NODE STMT LIST\n");
 
 		/*************************************/
 		/* RECURSIVELY PRINT HEAD + TAIL ... */

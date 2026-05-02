@@ -42,4 +42,15 @@ public class AstExpString extends AstExp
 	{
 		return TypeString.getInstance();
 	}
+
+	public temp.Temp irMe()
+	{
+		temp.Temp t = temp.TempFactory.getInstance().getFreshTemp();
+		String strValue = value;
+		if (strValue.startsWith("\"") && strValue.endsWith("\"") && strValue.length() >= 2) {
+			strValue = strValue.substring(1, strValue.length() - 1);
+		}
+		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandLoadString(t, strValue));
+		return t;
+	}
 }

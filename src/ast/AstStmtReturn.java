@@ -45,7 +45,6 @@ public class AstStmtReturn extends AstStmt
 		/***********************************/
 		/* AST NODE TYPE = AST RETURN STMT */
 		/***********************************/
-		System.out.print("AST NODE STMT RETURN\n");
 
 		/*****************************/
 		/* RECURSIVELY PRINT exp ... */
@@ -77,7 +76,6 @@ public class AstStmtReturn extends AstStmt
 		// Check void functions
 		if (expectedReturnType == types.TypeVoid.getInstance()) {
 			if (exp != null) {
-				System.out.format(">> ERROR [%d:%d] void function cannot return a value\n", line, line);
 				throw new Error("ERROR(" + line + ")");
 			}
 			return null;
@@ -85,7 +83,6 @@ public class AstStmtReturn extends AstStmt
 		
 		// Check non-void functions
 		if (exp == null) {
-			System.out.format(">> ERROR [%d:%d] non-void function must return a value\n", line, line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
@@ -93,7 +90,6 @@ public class AstStmtReturn extends AstStmt
 		
 		// Check type compatibility
 		if (actualReturnType == null) {
-			System.out.format(">> ERROR [%d:%d] cannot determine return expression type\n", line, line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
@@ -102,13 +98,11 @@ public class AstStmtReturn extends AstStmt
 			if (expectedReturnType.isClass() || expectedReturnType instanceof types.TypeArray) {
 				return null;
 			}
-			System.out.format(">> ERROR [%d:%d] cannot return nil for non-reference type\n", line, line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
 		// Check for type match
 		if (!typesMatch(expectedReturnType, actualReturnType)) {
-			System.out.format(">> ERROR [%d:%d] return type mismatch\n", line, line);
 			throw new Error("ERROR(" + line + ")");
 		}
 		
@@ -153,6 +147,8 @@ public class AstStmtReturn extends AstStmt
 			{
 				Ir.getInstance().AddIrCommand(
 						new IrCommandStore(funcName + "_retval", retTemp));
+				Ir.getInstance().AddIrCommand(
+						new IrCommandStore("_virtual_retval", retTemp));
 			}
 		}
 		Ir.getInstance().AddIrCommand(new IrCommandReturn());
