@@ -1,7 +1,6 @@
 package ast;
 
 import ir.*;
-import ir.IrVarTable;
 import temp.Temp;
 import types.*;
 import symboltable.*;
