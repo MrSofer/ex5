@@ -1,0 +1,35 @@
+/***********/
+/* PACKAGE */
+/***********/
+package ir;
+
+/*******************/
+/* GENERAL IMPORTS */
+/*******************/
+
+/*******************/
+/* PROJECT IMPORTS */
+/*******************/
+import temp.*;
+
+public class IrCommandLoad extends IrCommand
+{
+	private Temp dst;
+	private String varName;
+	
+	public IrCommandLoad(Temp dst, String varName)
+	{
+		this.dst      = dst;
+		this.varName = varName;
+	}
+
+	public Temp getDst()
+	{
+		return dst;
+	}
+
+	public String getVarName()
+	{
+		return varName;
+	}
+}
