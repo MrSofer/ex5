@@ -25,6 +25,8 @@ public class IrCommandLoad extends IrCommand
 	}
 
 	public Temp getDefinedTemp() { return dst; }
+	public Temp getDst() { return dst; }
+	public String getVarName() { return varName; }
 	
 	/***************/
 	/* MIPS me !!! */

@@ -1,7 +1,7 @@
 package ast;
 
+import temp.Temp;
 import types.*;
-import temp.*;
 
 public class AstStmtList extends AstNode
 {
@@ -70,6 +70,21 @@ public class AstStmtList extends AstNode
 		if (tail != null) tail.semantMe();
 		
 		return null;
+	}
+	
+	/**
+	 * Check if this statement list contains at least one return statement
+	 */
+	public boolean hasReturnStatement()
+	{
+		// Check if head contains a return (e.g., inside if/while)
+		if (head != null && head.hasReturnStatement()) {
+			return true;
+		}
+		if (tail != null) {
+			return tail.hasReturnStatement();
+		}
+		return false;
 	}
 
 	public Temp irMe()

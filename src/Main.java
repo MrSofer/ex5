@@ -19,7 +19,7 @@ public class Main
 		Symbol s;
 		AstDecList ast;
 		FileReader fileReader;
-		PrintWriter fileWriter;
+		PrintWriter fileWriter = null;
 		String inputFileName = argv[0];
 		String outputFileName = argv[1];
 
@@ -99,6 +99,20 @@ public class Main
 		catch (Exception e)
 		{
 			e.printStackTrace();
+		}
+		catch (Error e)
+		{
+			String emsg = e.getMessage();
+			System.out.println(emsg);
+			String finalError;
+			if (emsg == null || !emsg.startsWith("ERROR("))
+				finalError = "ERROR";
+			else
+				finalError = emsg;
+
+			try {
+				if (fileWriter != null) fileWriter.close();
+			} catch (Exception ex) {}
 		}
 	}
 }

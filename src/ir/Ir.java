@@ -78,4 +78,7 @@ public class Ir
 		// that the RegisterAllocator can easily traverse!
 		return new IrCommandList(this.head, this.tail);
 	}
+
+	public IrCommand getHead() { return head; }
+	public IrCommandList getTail() { return tail; }
 }

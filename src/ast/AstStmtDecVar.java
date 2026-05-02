@@ -1,7 +1,7 @@
 package ast;
 
+import temp.Temp;
 import types.*;
-import temp.*;
 
 public class AstStmtDecVar extends AstStmt
 {
@@ -43,6 +43,11 @@ public class AstStmtDecVar extends AstStmt
 	public Type semantMe()
 	{
 		return var.semantMe();
+	}
+
+	@Override
+	public boolean hasReturnStatement() {
+		return false;
 	}
 
 	public Temp irMe() { return var.irMe(); }

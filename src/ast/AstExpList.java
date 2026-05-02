@@ -1,6 +1,6 @@
 package ast;
 
-import temp.*;
+import temp.Temp;
 
 public class AstExpList extends AstNode
 {
@@ -51,6 +51,18 @@ public class AstExpList extends AstNode
 		/****************************************/
 		if (head != null) AstGraphviz.getInstance().logEdge(serialNumber,head.serialNumber);
 		if (tail != null) AstGraphviz.getInstance().logEdge(serialNumber,tail.serialNumber);
+	}
+
+	public types.Type semantMe()
+	{
+		// Semant each expression in the list
+		if (head != null) {
+			head.semantMe();
+		}
+		if (tail != null) {
+			tail.semantMe();
+		}
+		return null;
 	}
 
 	public Temp irMe()

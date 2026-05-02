@@ -18,7 +18,7 @@ import types.*;
 /****************/
 public class SymbolTable
 {
-	private int hashArraySize = 13;
+	private int hashArraySize = 1;
 	
 	/**********************************************/
 	/* The actual symbol table data structure ... */
@@ -32,15 +32,15 @@ public class SymbolTable
 	/**************************************************************/
 	private int hash(String s)
 	{
-		if (s.charAt(0) == 'l') {return 1;}
-		if (s.charAt(0) == 'm') {return 1;}
-		if (s.charAt(0) == 'r') {return 3;}
-		if (s.charAt(0) == 'i') {return 6;}
-		if (s.charAt(0) == 'd') {return 6;}
-		if (s.charAt(0) == 'k') {return 6;}
-		if (s.charAt(0) == 'f') {return 6;}
-		if (s.charAt(0) == 'S') {return 6;}
-		return 12;
+//		if (s.charAt(0) == 'l') {return 1;}
+//		if (s.charAt(0) == 'm') {return 1;}
+//		if (s.charAt(0) == 'r') {return 3;}
+//		if (s.charAt(0) == 'i') {return 6;}
+//		if (s.charAt(0) == 'd') {return 6;}
+//		if (s.charAt(0) == 'k') {return 6;}
+//		if (s.charAt(0) == 'f') {return 6;}
+//		if (s.charAt(0) == 'S') {return 6;}
+		return 0;
 	}
 
 	/****************************************************************************/
@@ -89,6 +89,31 @@ public class SymbolTable
 				
 		for (e = table[hash(name)]; e != null; e = e.next)
 		{
+			if (name.equals(e.name))
+			{
+				return e.type;
+			}
+		}
+		
+		return null;
+	}
+
+	/******************************************************/
+	/* Find element with name in current scope only      */
+	/* Used for checking redeclaration within same scope */
+	/******************************************************/
+	public Type findInCurrentScope(String name)
+	{
+		SymbolTableEntry e;
+				
+		for (e = table[hash(name)]; e != null; e = e.next)
+		{
+			/* If we hit a scope boundary, stop searching */
+			if (e.name.equals("SCOPE-BOUNDARY"))
+			{
+				return null;
+			}
+			
 			if (name.equals(e.name))
 			{
 				return e.type;
@@ -225,6 +250,22 @@ public class SymbolTable
 		}		
 	}
 	
+	/***************************************************************/
+	/* Track current function return type for return validation   */
+	/***************************************************************/
+	private Type currentFunctionReturnType = null;
+	private TypeClass currentClass = null;
+
+	public void setCurrentFunctionReturnType(Type t)
+	{
+		this.currentFunctionReturnType = t;
+	}
+	
+	public Type getCurrentFunctionReturnType()
+	{
+		return this.currentFunctionReturnType;
+	}
+
 	/**************************************/
 	/* USUAL SINGLETON IMPLEMENTATION ... */
 	/**************************************/
@@ -247,30 +288,34 @@ public class SymbolTable
 			/*******************************/
 			instance = new SymbolTable();
 
-			/*****************************************/
-			/* [1] Enter primitive types int, string */
-			/*****************************************/
+			/************************************************/
+			/* [1] Enter primitive types int, string, void */
+			/************************************************/
 			instance.enter("int",   TypeInt.getInstance());
 			instance.enter("string", TypeString.getInstance());
-
-			/*************************************/
-			/* [2] How should we handle void ??? */
-			/*************************************/
 			instance.enter("void", TypeVoid.getInstance());
 
 			/***************************************/
 			/* [3] Enter library function PrintInt */
 			/***************************************/
-			instance.enter(
-				"PrintInt",
-				new TypeFunction(
-					TypeVoid.getInstance(),
+			TypeFunction printInt = new TypeFunction(TypeVoid.getInstance(),
 					"PrintInt",
-					new TypeList(
-						TypeInt.getInstance(),
-						null)));
-			
+					new TypeList(TypeInt.getInstance(), null));
+			instance.enter("PrintInt", printInt);
+
+			TypeFunction printStr = new TypeFunction(TypeVoid.getInstance(),
+					"PrintString",
+					new TypeList(TypeString.getInstance(), null));
+			instance.enter("PrintString", printStr);
 		}
 		return instance;
+	}
+
+	public void setCurrentClass(TypeClass classType) {
+		currentClass = classType;
+	}
+
+	public TypeClass getCurrentClass() {
+		return this.currentClass;
 	}
 }

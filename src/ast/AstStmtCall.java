@@ -1,6 +1,6 @@
 package ast;
 
-import temp.*;
+import temp.Temp;
 
 public class AstStmtCall extends AstStmt
 {
@@ -37,6 +37,19 @@ public class AstStmtCall extends AstStmt
 		/* PRINT Edges to AST GRAPHVIZ DOT file */
 		/****************************************/
 		AstGraphviz.getInstance().logEdge(serialNumber,callExp.serialNumber);
+	}
+
+	public types.Type semantMe()
+	{
+		if (callExp != null) {
+			callExp.semantMe();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean hasReturnStatement() {
+		return false;
 	}
 
 	public Temp irMe()

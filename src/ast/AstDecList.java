@@ -1,8 +1,7 @@
 package ast;
 
+import temp.Temp;
 import types.*;
-import temp.*;
-import ir.*;
 
 public class AstDecList extends AstNode
 {
@@ -61,6 +60,8 @@ public class AstDecList extends AstNode
 		/*************************************/
 		/* RECURSIVELY PRINT HEAD + TAIL ... */
 		/*************************************/
+
+		// THIS IS JUST FOR THIS EX. SINCE MAIN IS THE ONLY FUNC DEC.
 		if (head != null) head.semantMe();
 		if (tail != null) tail.semantMe();
 
@@ -69,9 +70,15 @@ public class AstDecList extends AstNode
 
 	public Temp irMe()
 	{
-		if (head != null) head.irMe();
-		if (tail != null) tail.irMe();
-
+		// WORKS BECAUSE MAIN IS THE ONLY FUNC DEC.
+		if (head != null && head instanceof AstDecFunc) {
+			if (tail != null) tail.irMe();
+			if (head != null) head.irMe();
+		}
+		else {
+			if (head != null) head.irMe();
+			if (tail != null) tail.irMe();
+		}
 		return null;
 	}
 }

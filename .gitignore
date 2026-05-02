@@ -1,0 +1,1 @@
+COMPILER bin/ src/Lexer.java src/Parser.java src/TokenNames.java
