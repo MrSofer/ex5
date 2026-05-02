@@ -199,6 +199,17 @@ public class AstDecFunc extends AstDec
 	public static String getCurrentClassContext() { return currentClassContext; }
 	public static void setCurrentClassContext(String ctx) { currentClassContext = ctx; }
 
+	private static String overrideParamPrefix = null;
+	public static void setOverrideParamPrefix(String prefix) { overrideParamPrefix = prefix; }
+
+	private static List<String> currentFuncAllGlobals = null;
+	public static void addCurrentFuncGlobal(String label) {
+		if (currentFuncAllGlobals != null) currentFuncAllGlobals.add(label);
+	}
+	public static List<String> getCurrentFuncAllGlobals() {
+		return currentFuncAllGlobals != null ? new ArrayList<>(currentFuncAllGlobals) : new ArrayList<>();
+	}
+
 	public void preRegisterParams()
 	{
 		String prefix = currentClassContext;
@@ -207,11 +218,17 @@ public class AstDecFunc extends AstDec
 		else if (prefix != null)      mipsName = prefix + "_" + name;
 		else                          mipsName = "func_" + name;
 
+		String paramPrefix = (overrideParamPrefix != null) ? overrideParamPrefix : mipsName;
+
 		List<String> paramLabels = new ArrayList<>();
-		if (prefix != null) paramLabels.add(mipsName + "_param_this");
+		if (prefix != null) paramLabels.add(paramPrefix + "_param_this");
 		for (AstTypeNameList it = params; it != null; it = it.tail)
-			paramLabels.add(mipsName + "_param_" + it.head.name);
+			paramLabels.add(paramPrefix + "_param_" + it.head.name);
 		FuncParamTable.getInstance().register(mipsName, paramLabels);
+		// Also register under paramPrefix key so callers using rootOwner key can find params
+		if (!paramPrefix.equals(mipsName)) {
+			FuncParamTable.getInstance().register(paramPrefix, paramLabels);
+		}
 	}
 
 	public Temp irMe()
@@ -222,7 +239,10 @@ public class AstDecFunc extends AstDec
 		else if (prefix != null)      mipsName = prefix + "_" + name;
 		else                          mipsName = "func_" + name;
 
+		String paramPrefix = (overrideParamPrefix != null) ? overrideParamPrefix : mipsName;
+
 		currentMipsFuncName = mipsName;
+		currentFuncAllGlobals = new ArrayList<>();
 
 		Ir.getInstance().AddIrCommand(new IrCommandLabel(mipsName));
 		IrVarTable.getInstance().beginScope();
@@ -230,18 +250,20 @@ public class AstDecFunc extends AstDec
 		Ir.getInstance().AddIrCommand(new IrCommandAllocate(mipsName + "_retval"));
 
 		if (prefix != null) {
-			String thisLabel = mipsName + "_param_this";
+			String thisLabel = paramPrefix + "_param_this";
 			Ir.getInstance().AddIrCommand(new IrCommandAllocate(thisLabel));
 			ClassContext.getInstance().enterClass(
 				(types.TypeClass) symboltable.SymbolTable.getInstance().find(prefix),
 				thisLabel);
+			addCurrentFuncGlobal(thisLabel);
 		}
 
 		for (AstTypeNameList it = params; it != null; it = it.tail)
 		{
-			String uniqueLabel = mipsName + "_param_" + it.head.name;
+			String uniqueLabel = paramPrefix + "_param_" + it.head.name;
 			IrVarTable.getInstance().allocateWithLabel(it.head.name, uniqueLabel);
 			Ir.getInstance().AddIrCommand(new IrCommandAllocate(uniqueLabel));
+			addCurrentFuncGlobal(uniqueLabel);
 		}
 
 		if (body != null) body.irMe();
@@ -249,6 +271,7 @@ public class AstDecFunc extends AstDec
 
 		if (prefix != null) ClassContext.getInstance().leaveClass();
 
+		currentFuncAllGlobals = null;
 		currentMipsFuncName = null;
 		Ir.getInstance().AddIrCommand(new IrCommandReturn());
 		return null;

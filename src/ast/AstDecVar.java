@@ -154,6 +154,7 @@ public class AstDecVar extends AstDec
 	{
 		String uniqueLabel = IrVarTable.getInstance().allocate(name);
 		Ir.getInstance().AddIrCommand(new IrCommandAllocate(uniqueLabel));
+		AstDecFunc.addCurrentFuncGlobal(uniqueLabel);
 
 		if (initialValue != null)
 		{

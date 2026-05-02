@@ -184,35 +184,59 @@ public class AstExpCall extends AstExp
 
 		// Method call on object
 		if (object != null && cachedObjectType instanceof TypeClass tc) {
-			String methodClass = findMethodClassName(tc, funcName);
-			String mipsMethod = (methodClass != null ? methodClass + "_" : "") + funcName;
+			// Determine param prefix using root ancestor's label
+			String rootOwner = ast.VtableRegistry.getInstance().getRootMethodOwner(tc.name, funcName);
+			String mipsMethod = (rootOwner != null ? rootOwner : tc.name) + "_" + funcName;
 
-			// Save caller's params before computing args
-			java.util.List<String> callerMethodParams = FuncParamTable.getInstance().getParams(AstDecFunc.getCurrentMipsFuncName());
-			if (callerMethodParams == null) callerMethodParams = new java.util.ArrayList<>();
-			if (!callerMethodParams.isEmpty())
-				Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(callerMethodParams)));
+			// Get ALL caller's globals (params + locals) for save/restore
+			java.util.List<String> callerGlobals = AstDecFunc.getCurrentFuncAllGlobals();
+			if (!callerGlobals.isEmpty())
+				Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(callerGlobals)));
 
 			Temp objPtr = object.irMe();
-			// Null check before method call
 			Ir.getInstance().AddIrCommand(new IrCommandNullCheck(objPtr));
-			// Store this pointer
+
+			// Store this pointer using root param label
 			String thisLabel = mipsMethod + "_param_this";
 			Ir.getInstance().AddIrCommand(new IrCommandStore(thisLabel, objPtr));
 
+			// Evaluate ALL args first, then store (Fix 1)
+			// Only needed when some arg contains a call (to avoid clobbering param globals)
 			java.util.List<String> paramLabels = FuncParamTable.getInstance().getParams(mipsMethod);
-			int i = 1; // 0 is 'this'
-			for (AstExpList argIt = params; argIt != null; argIt = argIt.tail) {
-				Temp argTemp = argIt.head.irMe();
-				if (i < paramLabels.size())
-					Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemp));
-				i++;
+			if (argListContainsCall(params)) {
+				java.util.List<Temp> argTemps = new java.util.ArrayList<>();
+				for (AstExpList argIt = params; argIt != null; argIt = argIt.tail)
+					argTemps.add(argIt.head.irMe());
+				for (int i = 0; i < argTemps.size() && i + 1 < paramLabels.size(); i++)
+					Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i + 1), argTemps.get(i)));
+			} else {
+				int i = 1; // 0 is 'this'
+				for (AstExpList argIt = params; argIt != null; argIt = argIt.tail) {
+					Temp argTemp = argIt.head.irMe();
+					if (i < paramLabels.size())
+						Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemp));
+					i++;
+				}
 			}
-			Ir.getInstance().AddIrCommand(new IrCommandCall(mipsMethod, callerMethodParams));
-			if (!callerMethodParams.isEmpty())
-				Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(callerMethodParams)));
+
+			// Dispatch: virtual if class has a vtable slot, static otherwise
+			int vtableIdx = ast.VtableRegistry.getInstance().getMethodIndex(tc.name, funcName);
+			boolean useVirtual = vtableIdx >= 0;
+			if (useVirtual) {
+				Ir.getInstance().AddIrCommand(new ir.IrCommandCallVirtual(objPtr, vtableIdx));
+			} else {
+				Ir.getInstance().AddIrCommand(new IrCommandCall(mipsMethod, callerGlobals));
+			}
+
+			if (!callerGlobals.isEmpty())
+				Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(callerGlobals)));
+
 			Temp retval = TempFactory.getInstance().getFreshTemp();
-			Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsMethod + "_retval"));
+			if (useVirtual) {
+				Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, "_virtual_retval"));
+			} else {
+				Ir.getInstance().AddIrCommand(new IrCommandLoad(retval, mipsMethod + "_retval"));
+			}
 			return retval;
 		}
 
@@ -224,29 +248,32 @@ public class AstExpCall extends AstExp
 		java.util.List<String> paramLabels =
 				FuncParamTable.getInstance().getParams(mipsName);
 
-		// Save caller's own param globals before computing args (preserves them for recursion)
-		java.util.List<String> callerParams = FuncParamTable.getInstance().getParams(AstDecFunc.getCurrentMipsFuncName());
-		if (callerParams == null) callerParams = new java.util.ArrayList<>();
-		if (!callerParams.isEmpty())
-			Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(callerParams)));
+		// Get ALL caller's globals (params + locals) for save/restore (Fix 2)
+		java.util.List<String> allCallerGlobals = AstDecFunc.getCurrentFuncAllGlobals();
+		if (!allCallerGlobals.isEmpty())
+			Ir.getInstance().AddIrCommand(new IrCommandSaveGlobals(new java.util.ArrayList<>(allCallerGlobals)));
 
-		int i = 0;
-		for (AstExpList argIt = params; argIt != null; argIt = argIt.tail)
-		{
-			Temp argTemp = argIt.head.irMe();
-			if (i < paramLabels.size())
-			{
-				Ir.getInstance().AddIrCommand(
-						new IrCommandStore(paramLabels.get(i), argTemp));
+		// Evaluate all args FIRST, then store (Fix 1) - only when args contain calls
+		if (argListContainsCall(params)) {
+			java.util.List<Temp> argTemps = new java.util.ArrayList<>();
+			for (AstExpList argIt = params; argIt != null; argIt = argIt.tail)
+				argTemps.add(argIt.head.irMe());
+			for (int i = 0; i < argTemps.size() && i < paramLabels.size(); i++)
+				Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemps.get(i)));
+		} else {
+			int i = 0;
+			for (AstExpList argIt = params; argIt != null; argIt = argIt.tail) {
+				Temp argTemp = argIt.head.irMe();
+				if (i < paramLabels.size())
+					Ir.getInstance().AddIrCommand(new IrCommandStore(paramLabels.get(i), argTemp));
+				i++;
 			}
-			i++;
 		}
 
-		Ir.getInstance().AddIrCommand(new IrCommandCall(mipsName, callerParams));
+		Ir.getInstance().AddIrCommand(new IrCommandCall(mipsName, allCallerGlobals));
 
-		// Restore caller's params after call
-		if (!callerParams.isEmpty())
-			Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(callerParams)));
+		if (!allCallerGlobals.isEmpty())
+			Ir.getInstance().AddIrCommand(new IrCommandRestoreGlobals(new java.util.ArrayList<>(allCallerGlobals)));
 
 		/*******************************************************/
 		/* Load return value from the function's retval global */
@@ -257,12 +284,18 @@ public class AstExpCall extends AstExp
 		return retval;
 	}
 
-	private String findMethodClassName(TypeClass tc, String methodName) {
-		if (tc == null) return null;
-		for (TypeClassVarDecList it = tc.dataMembers; it != null; it = it.tail) {
-			if (it.head.name.equals(methodName) && it.head.t instanceof TypeFunction)
-				return tc.name;
+	private static boolean containsCall(AstExp exp) {
+		if (exp == null) return false;
+		if (exp instanceof AstExpCall) return true;
+		if (exp instanceof AstExpBinop b) return containsCall(b.left) || containsCall(b.right);
+		if (exp instanceof AstExpVarSubscript s) return containsCall(s.subscript);
+		return false;
+	}
+
+	private static boolean argListContainsCall(AstExpList params) {
+		for (AstExpList it = params; it != null; it = it.tail) {
+			if (containsCall(it.head)) return true;
 		}
-		return findMethodClassName(tc.father, methodName);
+		return false;
 	}
 }

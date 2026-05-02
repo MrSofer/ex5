@@ -121,11 +121,17 @@ public class AstExpNew extends AstExp
         types.Type t = symboltable.SymbolTable.getInstance().find(typeName);
         if (t instanceof types.TypeClass tc) {
             int totalFields = ast.ClassContext.countNonMethodFields(tc);
-            int byteSize2 = (totalFields > 0 ? totalFields : 1) * 4;
+            int byteSize2 = (totalFields + 1) * 4; // +1 for vtable pointer
             Temp sizeTemp2 = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IRcommandConstInt(sizeTemp2, byteSize2));
             Temp result = TempFactory.getInstance().getFreshTemp();
             Ir.getInstance().AddIrCommand(new IrCommandAllocateHeap(sizeTemp2, result));
+            // Store vtable pointer at offset 0 if class has a vtable
+            if (ast.VtableRegistry.getInstance().hasVtable(tc.name)) {
+                Temp vtablePtrTemp = TempFactory.getInstance().getFreshTemp();
+                Ir.getInstance().AddIrCommand(new ir.IrCommandLoadAddr(vtablePtrTemp, tc.name + "_vtable"));
+                Ir.getInstance().AddIrCommand(new IrCommandStoreIndirect(result, vtablePtrTemp));
+            }
             // Initialize fields
             ast.ClassContext.emitFieldInit(tc, result);
             return result;

@@ -131,11 +131,14 @@ public class MipsGenerator
 		fileWriter.format("\tsyscall\n");
 		fileWriter.format("\tmove $t%d,$v0\n", resultIdx);
 	}
+	private final java.util.Set<String> allocatedVars = new java.util.HashSet<>();
 	public void allocate(String varName)
 	{
-		fileWriter.format(".data\n");
-		fileWriter.format("\tglobal_%s: .word 0\n",varName);
-		fileWriter.format(".text\n");
+		if (allocatedVars.add(varName)) {
+			fileWriter.format(".data\n");
+			fileWriter.format("\tglobal_%s: .word 0\n",varName);
+			fileWriter.format(".text\n");
+		}
 	}
 	public void load(Temp dst, String varName)
 	{
@@ -228,22 +231,25 @@ public class MipsGenerator
 	public void checkArrayBounds(Temp ptr, Temp idx) {
 		int pReg = colorOf(ptr);
 		int iReg = colorOf(idx);
-		String errLabel = "_bounds_err_" + checkCounter;
-		String okLabel  = "_bounds_ok_" + checkCounter++;
-		// Null check
-		fileWriter.format("\tbeq $t%d,$zero,%s\n", pReg, errLabel);
-		// Negative index check
-		fileWriter.format("\tbltz $t%d,%s\n", iReg, errLabel);
-		// Upper bound: load size from *(ptr), compare idx >= size
+		String nullErrLabel   = "_null_err_"   + checkCounter;
+		String boundsErrLabel = "_bounds_err_" + checkCounter;
+		String okLabel        = "_bounds_ok_"  + checkCounter++;
+		// Null check (ptr == 0) → Invalid Pointer Dereference
+		fileWriter.format("\tbeq $t%d,$zero,%s\n", pReg, nullErrLabel);
+		// Negative index check → Access Violation
+		fileWriter.format("\tbltz $t%d,%s\n", iReg, boundsErrLabel);
+		// Upper bound check → Access Violation
 		fileWriter.format("\tlw $t8,0($t%d)\n", pReg);
-		fileWriter.format("\tbge $t%d,$t8,%s\n", iReg, errLabel);
+		fileWriter.format("\tbge $t%d,$t8,%s\n", iReg, boundsErrLabel);
 		fileWriter.format("\tj %s\n", okLabel);
-		fileWriter.format("%s:\n", errLabel);
+		// null error:
+		fileWriter.format("%s:\n", nullErrLabel);
+		fileWriter.format("\tla $a0,string_invalid_ptr_dref\n");
+		fileWriter.format("\tli $v0,4\n\tsyscall\n\tli $v0,10\n\tsyscall\n");
+		// bounds error:
+		fileWriter.format("%s:\n", boundsErrLabel);
 		fileWriter.format("\tla $a0,string_access_violation\n");
-		fileWriter.format("\tli $v0,4\n");
-		fileWriter.format("\tsyscall\n");
-		fileWriter.format("\tli $v0,10\n");
-		fileWriter.format("\tsyscall\n");
+		fileWriter.format("\tli $v0,4\n\tsyscall\n\tli $v0,10\n\tsyscall\n");
 		fileWriter.format("%s:\n", okLabel);
 	}
 
@@ -449,6 +455,39 @@ public class MipsGenerator
 		fileWriter.format("\tbeq $t%d,$zero,%s\n",i1,label);
 	}
 	
+	public void callVirtual(temp.Temp objPtr, int vtableIndex) {
+		int reg = colorOf(objPtr);
+		// Load vtable pointer from offset 0 of object
+		fileWriter.format("\tlw $t8,0($t%d)\n", reg);
+		// Load method pointer from vtable at vtableIndex*4
+		fileWriter.format("\tlw $t8,%d($t8)\n", vtableIndex * 4);
+		// Save t0-t7
+		for (int i = 0; i < 8; i++) {
+			fileWriter.format("\tsubu $sp,$sp,4\n\tsw $t%d,0($sp)\n", i);
+		}
+		// Save ra
+		fileWriter.format("\tsubu $sp,$sp,4\n\tsw $ra,0($sp)\n");
+		fileWriter.format("\tjalr $t8\n");
+		// Restore ra
+		fileWriter.format("\tlw $ra,0($sp)\n\taddu $sp,$sp,4\n");
+		// Restore t7-t0
+		for (int i = 7; i >= 0; i--) {
+			fileWriter.format("\tlw $t%d,0($sp)\n\taddu $sp,$sp,4\n", i);
+		}
+	}
+
+	public void emitVtable(String className, java.util.List<String> entries) {
+		fileWriter.format(".data\n%s_vtable:\n", className);
+		for (String e : entries) {
+			fileWriter.format("\t.word %s\n", e);
+		}
+		fileWriter.format(".text\n");
+	}
+
+	public void loadAddress(Temp dst, String label) {
+		fileWriter.format("\tla $t%d,%s\n", colorOf(dst), label);
+	}
+
 	/**************************************/
 	/* USUAL SINGLETON IMPLEMENTATION ... */
 	/**************************************/
@@ -470,6 +509,7 @@ public class MipsGenerator
 		instance.fileWriter.print("string_access_violation: .asciiz \"Access Violation\"\n");
 		instance.fileWriter.print("string_illegal_div_by_0: .asciiz \"Illegal Division By Zero\"\n");
 		instance.fileWriter.print("string_invalid_ptr_dref: .asciiz \"Invalid Pointer Dereference\"\n");
+		instance.fileWriter.print("\tglobal__virtual_retval: .word 0\n");
 	}
 
 	/******************************/

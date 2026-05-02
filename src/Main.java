@@ -52,6 +52,9 @@ public class Main
 			/**********************/
 			/* [6] Ir the AST ... */
 			/**********************/
+			// Build vtables before preRegisterParams so override bases can be determined
+			VtableRegistry.getInstance().buildAll(ast);
+
 			for (ast.AstDecList it = ast; it != null; it = it.tail)
 			{
 				if (it.head instanceof AstDecFunc f)
@@ -59,6 +62,9 @@ public class Main
 				else if (it.head instanceof AstDecClass c)
 					c.preRegisterParams();
 			}
+
+			// Initialize MipsGenerator before irMeTopLevel so vtable data can be emitted
+			MipsGenerator.init(outputFileName);
 			ast.irMeTopLevel();
 
 			/*Register Allocation*/
@@ -68,7 +74,6 @@ public class Main
 			/***********************/
 			/* [7] MIPS the Ir ... */
 			/***********************/
-			MipsGenerator.init(outputFileName);
 			Ir.getInstance().mipsMe();
 
 

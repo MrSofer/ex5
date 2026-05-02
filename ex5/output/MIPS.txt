@@ -2,6 +2,7 @@
 string_access_violation: .asciiz "Access Violation"
 string_illegal_div_by_0: .asciiz "Illegal Division By Zero"
 string_invalid_ptr_dref: .asciiz "Invalid Pointer Dereference"
+	global__virtual_retval: .word 0
 .text
 global_init:
 	jr $ra
@@ -24,6 +25,9 @@ user_main:
 .data
 	global_f_1: .word 0
 .text
+	lw $t8,global_f_1
+	subu $sp,$sp,4
+	sw $t8,0($sp)
 	subu $sp,$sp,4
 	sw $t0,0($sp)
 	subu $sp,$sp,4
@@ -61,6 +65,9 @@ user_main:
 	addu $sp,$sp,4
 	lw $t0,0($sp)
 	addu $sp,$sp,4
+	lw $t8,0($sp)
+	addu $sp,$sp,4
+	sw $t8,global_f_1
 	lw $t0,global_func_bar_retval
 	sw $t0,global_f_1
 	lw $t1,global_f_1
@@ -71,7 +78,7 @@ user_main:
 	li $v0,10
 	syscall
 _null_ok_0:
-	li $t0,0
+	li $t0,4
 	add $t0,$t1,$t0
 	lw $t0,0($t0)
 	move $a0,$t0

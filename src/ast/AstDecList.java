@@ -83,6 +83,16 @@ public class AstDecList extends AstNode
 
 	public Temp irMeTopLevel()
 	{
+		// Step 0a: Pre-register all class data members for field init (needed before global_init)
+		for (AstDecList it = this; it != null; it = it.tail) {
+			if (it.head instanceof AstDecClass c) {
+				ClassRegistry.getInstance().register(c.name, c.dataMembers);
+			}
+		}
+
+		// Step 0b: Emit vtable data (vtables already built in Main.java before preRegisterParams)
+		VtableRegistry.getInstance().emitVtables();
+
 		// Step 1: global_init function wrapping all global var declarations
 		ir.Ir.getInstance().AddIrCommand(new ir.IrCommandLabel("global_init"));
 		for (AstDecList it = this; it != null; it = it.tail) {

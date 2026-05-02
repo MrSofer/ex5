@@ -71,7 +71,7 @@ public class ClassContext {
             }
         }
         for (int i = 0; i < ownFields.size(); i++) {
-            if (ownFields.get(i).equals(fieldName)) return baseOffset + i * 4;
+            if (ownFields.get(i).equals(fieldName)) return 4 + baseOffset + i * 4;
         }
         return -1;
     }
@@ -85,9 +85,7 @@ public class ClassContext {
         // Recurse for parent fields first
         emitFieldInit(tc.father, thisPtr);
 
-        int baseOffset = countNonMethodFields(tc.father) * 4;
-
-        // Collect own var-declarations in declaration order using ClassRegistry
+        int baseOffset = 4 + countNonMethodFields(tc.father) * 4;
         AstDecList dataMembers = ClassRegistry.getInstance().getDataMembers(tc.name);
         List<AstDecVar> ownVarFields = new ArrayList<>();
         if (dataMembers != null) {

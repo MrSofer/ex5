@@ -286,19 +286,30 @@ public class AstDecClass extends AstDec
 		AstDecFunc.setCurrentClassContext(name);
 		if (dataMembers != null) {
 			for (AstDecList it = dataMembers; it != null; it = it.tail) {
-				if (it.head instanceof AstDecFunc f) f.preRegisterParams();
+				if (it.head instanceof AstDecFunc f) {
+					String rootOwner = VtableRegistry.getInstance().getRootMethodOwner(name, f.name);
+					String rootPrefix = (rootOwner != null ? rootOwner : name) + "_" + f.name;
+					AstDecFunc.setOverrideParamPrefix(rootPrefix);
+					f.preRegisterParams();
+					AstDecFunc.setOverrideParamPrefix(null);
+				}
 			}
 		}
 		AstDecFunc.setCurrentClassContext(prev);
 	}
 
 	public temp.Temp irMe() {
-		ClassRegistry.getInstance().register(name, dataMembers);
 		String prev = AstDecFunc.getCurrentClassContext();
 		AstDecFunc.setCurrentClassContext(name);
 		if (dataMembers != null) {
 			for (AstDecList it = dataMembers; it != null; it = it.tail) {
-				if (it.head instanceof AstDecFunc f) f.irMe();
+				if (it.head instanceof AstDecFunc f) {
+					String rootOwner = VtableRegistry.getInstance().getRootMethodOwner(name, f.name);
+					String rootPrefix = (rootOwner != null ? rootOwner : name) + "_" + f.name;
+					AstDecFunc.setOverrideParamPrefix(rootPrefix);
+					f.irMe();
+					AstDecFunc.setOverrideParamPrefix(null);
+				}
 			}
 		}
 		AstDecFunc.setCurrentClassContext(prev);

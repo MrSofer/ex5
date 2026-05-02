@@ -147,6 +147,8 @@ public class AstStmtReturn extends AstStmt
 			{
 				Ir.getInstance().AddIrCommand(
 						new IrCommandStore(funcName + "_retval", retTemp));
+				Ir.getInstance().AddIrCommand(
+						new IrCommandStore("_virtual_retval", retTemp));
 			}
 		}
 		Ir.getInstance().AddIrCommand(new IrCommandReturn());
