@@ -1,9 +1,0 @@
-digraph structs {
-rankdir = LR
-node [shape=record];
-hashTable [label="<f0>
-0
-"];
-hashTable:f0 -> node_0_0:f0;
-node_0_0 [label="<f0>int|<f1>int|<f2>prevtop=0|<f3>next"];
-}
