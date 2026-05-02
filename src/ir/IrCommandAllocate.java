@@ -28,4 +28,5 @@ public class IrCommandAllocate extends IrCommand
 	{
 		MipsGenerator.getInstance().allocate(varName);
 	}
+	public String getVarName() { return varName; }
 }

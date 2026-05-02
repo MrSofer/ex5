@@ -19,7 +19,7 @@ public class Main
 		Symbol s;
 		AstDecList ast;
 		FileReader fileReader;
-		PrintWriter fileWriter;
+		PrintWriter fileWriter = null;
 		String inputFileName = argv[0];
 		String outputFileName = argv[1];
 
@@ -71,6 +71,7 @@ public class Main
 
 			for (Temp t : InterferenceGraph.getInstance().allNodes.keySet())
 			{
+				if (t == null) continue;
 				System.out.println("Temp: " + t.getSerialNumber());
 				System.out.println("is colored: " + InterferenceGraph.getInstance().allNodes.get(t).assignedColor);
 			}
@@ -99,6 +100,16 @@ public class Main
 		catch (Exception e)
 		{
 			e.printStackTrace();
+		}
+		catch (Error e)
+		{
+			String emsg = e.getMessage();
+			String finalError = (emsg == null || !emsg.startsWith("ERROR(")) ? "ERROR" : emsg;
+			System.out.println(finalError);
+
+			try {
+				if (fileWriter != null) fileWriter.close();
+			} catch (Exception ex) {}
 		}
 	}
 }

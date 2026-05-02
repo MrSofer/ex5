@@ -1,12 +1,15 @@
 package ast;
 
-import temp.*;
 import ir.*;
+import temp.Temp;
+import types.*;
+import symboltable.*;
 
 public class AstStmtWhile extends AstStmt
 {
 	public AstExp cond;
 	public AstStmtList body;
+	public int line;
 
 	/*******************/
 	/*  CONSTRUCTOR(S) */
@@ -15,6 +18,57 @@ public class AstStmtWhile extends AstStmt
 	{
 		this.cond = cond;
 		this.body = body;
+		this.line = 0;
+	}
+	
+	public AstStmtWhile(AstExp cond, AstStmtList body, int line)
+	{
+		this.cond = cond;
+		this.body = body;
+		this.line = line;
+	}
+
+	public void printMe()
+	{
+		System.out.print("AST NODE STMT WHILE\n");
+		if (cond != null) cond.printMe();
+		if (body != null) body.printMe();
+	}
+
+	public Type semantMe()
+	{
+		/****************************/
+		/* [0] Semant the Condition */
+		/****************************/
+		if (cond.semantMe() != TypeInt.getInstance())
+		{
+			System.out.format(">> ERROR [%d:%d] condition inside WHILE is not integral\n",line,line);
+			throw new Error("ERROR(" + line + ")");
+		}
+		
+		/*************************/
+		/* [1] Begin While Scope */
+		/*************************/
+		SymbolTable.getInstance().beginScope();
+
+		/***************************/
+		/* [2] Semant Data Members */
+		/***************************/
+		body.semantMe();
+
+		/*****************/
+		/* [3] End Scope */
+		/*****************/
+		SymbolTable.getInstance().endScope();
+
+		/*****************************************************/
+		/* [4] Return value is irrelevant for while statement */
+		/****************************************************/
+		return null;
+	}
+
+	public boolean hasReturnStatement() {
+		return body.hasReturnStatement();
 	}
 
 	public Temp irMe()

@@ -2,10 +2,10 @@ package ast;
 
 import types.*;
 
-public class AstExpVarField extends AstExpVar
-{
+public class AstExpVarField extends AstExpVar {
 	public AstExpVar var;
 	public String fieldName;
+	public int line;
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
@@ -20,6 +20,20 @@ public class AstExpVarField extends AstExpVar
 		System.out.format("====================== var -> var DOT ID( %s )\n",fieldName);
 		this.var = var;
 		this.fieldName = fieldName;
+		this.line = 0;
+	}
+
+	public AstExpVarField(AstExpVar var, String fieldName, int line)
+	{
+		/******************************/
+		/* SET A UNIQUE SERIAL NUMBER */
+		/******************************/
+		serialNumber = AstNodeSerialNumber.getFresh();
+
+		System.out.format("====================== var -> var DOT ID( %s )\n",fieldName);
+		this.var = var;
+		this.fieldName = fieldName;
+		this.line = line;
 	}
 
 	/*************************************************/
@@ -65,8 +79,8 @@ public class AstExpVarField extends AstExpVar
 		/*********************************/
 		if (t.isClass() == false)
 		{
-			System.out.format(">> ERROR [%d:%d] access %s field of a non-class variable\n",6,6,fieldName);
-			System.exit(0);
+			System.out.format(">> ERROR [%d:%d] access %s field of a non-class variable\n",line,line,fieldName);
+			throw new Error("ERROR(" + line + ")");
 		}
 		else
 		{
@@ -74,21 +88,26 @@ public class AstExpVarField extends AstExpVar
 		}
 		
 		/************************************/
-		/* [3] Look for fiedlName inside tc */
+		/* [3] Look for fieldName inside tc and its ancestors */
 		/************************************/
-		for (TypeList it = tc.dataMembers; it != null; it=it.tail)
+		TypeClass currentClass = tc;
+		while (currentClass != null)
 		{
-			if (it.head.name == fieldName)
+			for (TypeClassVarDecList it = currentClass.dataMembers; it != null; it=it.tail)
 			{
-				return it.head;
+				if (it.head.name.equals(fieldName))
+				{
+					return it.head.t;
+				}
 			}
+			// Move to parent class
+			currentClass = currentClass.father;
 		}
 		
 		/*********************************************/
-		/* [4] fieldName does not exist in class var */
+		/* [4] fieldName does not exist in class var or its ancestors */
 		/*********************************************/
-		System.out.format(">> ERROR [%d:%d] field %s does not exist in class\n",6,6,fieldName);							
-		System.exit(0);
-		return null;
+		System.out.format(">> ERROR [%d:%d] field %s does not exist in class\n",line,line,fieldName);
+		throw new Error("ERROR(" + line + ")");
 	}
 }

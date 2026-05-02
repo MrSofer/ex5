@@ -25,6 +25,8 @@ public class IRcommandConstInt extends IrCommand
 	}
 
 	public Temp getDefinedTemp() { return t; }
+	public Temp getTemp() { return t; }
+	public int getValue() { return value; }
 	
 	/***************/
 	/* MIPS me !!! */

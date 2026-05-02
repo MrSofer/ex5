@@ -16,11 +16,12 @@ public class AstTypeName extends AstNode
 	/****************/
 	public String type;
 	public String name;
+	public int line;
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstTypeName(String type, String name)
+	public AstTypeName(String type, String name, int line)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
@@ -29,6 +30,7 @@ public class AstTypeName extends AstNode
 	
 		this.type = type;
 		this.name = name;
+		this.line = line;
 	}
 
 	/*************************************************/
@@ -51,22 +53,29 @@ public class AstTypeName extends AstNode
 
 	public Type semantMe()
 	{
+		// check that type isn't void
+		if (type.equals("void")) {
+			System.out.format(">> ERROR [%d:%d] cannot declare var of type void %s\n",line,line,type);
+			throw new Error("ERROR(" + line + ")");
+		}
+
 		Type t = SymbolTable.getInstance().find(type);
 		if (t == null)
 		{
 			/**************************/
 			/* ERROR: undeclared type */
 			/**************************/
-			System.exit(0);
-			return null;
+			System.out.format(">> ERROR [%d:%d] undeclared type %s\n",line,line,type);
+			throw new Error("ERROR(" + line + ")");
 		}
 		else
 		{
 			/*******************************************************/
 			/* Enter var with name=name and type=t to symbol table */
 			/*******************************************************/
-			SymbolTable.getInstance().enter(name,t);
+//			SymbolTable.getInstance().enter(name,t);
 		}
+
 
 		/****************************/
 		/* return (existing) type t */

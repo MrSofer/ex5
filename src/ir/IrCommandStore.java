@@ -28,6 +28,8 @@ public class IrCommandStore extends IrCommand
 	}
 
 	public List<Temp> getUsedTemps() { return Arrays.asList(src); }
+	public Temp getSrc() { return src; }
+	public String getVarName() { return varName; }
 	
 	/***************/
 	/* MIPS me !!! */

@@ -22,7 +22,10 @@ public class IrCommandPrintInt extends IrCommand
 		this.t = t;
 	}
 
-	public java.util.List<Temp> getUsedTemps() { return java.util.Arrays.asList(t); }
+	public java.util.List<Temp> getUsedTemps() {
+		if (t == null) return java.util.Collections.emptyList();
+		return java.util.Arrays.asList(t);
+	}
 	
 	/***************/
 	/* MIPS me !!! */

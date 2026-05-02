@@ -1,8 +1,10 @@
 package ast;
 
+import ir.IRcommandConstInt;
+import ir.Ir;
+import temp.Temp;
+import temp.TempFactory;
 import types.*;
-import temp.*;
-import ir.*;
 
 public class AstExpInt extends AstExp
 {

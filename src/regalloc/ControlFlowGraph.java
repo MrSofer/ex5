@@ -31,28 +31,26 @@ public class ControlFlowGraph {
         for (int i = 0 ; i < allNodes.size() ; i++) {
             currNode = allNodes.get(i);
 
-            switch (currNode.nodeCommand) {
-                case IrCommandJumpLabel irJumpCmd -> {
-                    CommandNode target = JumpMap.get(irJumpCmd.getLabelName());
-                    currNode.successors.add(target);
-                    target.predecessors.add(currNode);
+            if (currNode.nodeCommand instanceof IrCommandJumpLabel) {
+                IrCommandJumpLabel irJumpCmd = (IrCommandJumpLabel) currNode.nodeCommand;
+                CommandNode target = JumpMap.get(irJumpCmd.getLabelName());
+                currNode.successors.add(target);
+                target.predecessors.add(currNode);
+            } else if (currNode.nodeCommand instanceof IrCommandJumpIfEqToZero) {
+                IrCommandJumpIfEqToZero irBranchCmd = (IrCommandJumpIfEqToZero) currNode.nodeCommand;
+                if (i < allNodes.size() - 1) {
+                    CommandNode nextNode = allNodes.get(i+1);
+                    currNode.successors.add(nextNode);
+                    nextNode.predecessors.add(currNode);
                 }
-                case IrCommandJumpIfEqToZero irBranchCmd -> {
-                    if (i < allNodes.size() - 1) {
-                        CommandNode nextNode = allNodes.get(i+1);
-                        currNode.successors.add(nextNode);
-                        nextNode.predecessors.add(currNode);
-                    }
-                    CommandNode target = JumpMap.get(irBranchCmd.getLabelName());
-                    currNode.successors.add(target);
-                    target.predecessors.add(currNode);
-                }
-                default -> {
-                    if (i < allNodes.size() - 1) {
-                        CommandNode nextNode = allNodes.get(i+1);
-                        currNode.successors.add(nextNode);
-                        nextNode.predecessors.add(currNode);
-                    }
+                CommandNode target = JumpMap.get(irBranchCmd.getLabelName());
+                currNode.successors.add(target);
+                target.predecessors.add(currNode);
+            } else {
+                if (i < allNodes.size() - 1) {
+                    CommandNode nextNode = allNodes.get(i+1);
+                    currNode.successors.add(nextNode);
+                    nextNode.predecessors.add(currNode);
                 }
             }
         }
@@ -86,7 +84,9 @@ public class ControlFlowGraph {
 
             List<Temp> uses = currNode.nodeCommand.getUsedTemps();
             if (uses != null) {
-                currNode.in.addAll(uses);
+                for (Temp u : uses) {
+                    if (u != null) currNode.in.add(u);
+                }
             }
 
             // 5. THE TRIGGER: Did 'IN' actually change?

@@ -1,10 +1,13 @@
 package ast;
 
+import ir.Ir;
+import ir.IrCommandAllocate;
+import ir.IrCommandStore;
+import temp.Temp;
 import types.*;
 import symboltable.*;
-import temp.*;
-import ir.*;
 
+import java.util.Objects;
 
 public class AstDecVar extends AstDec
 {
@@ -14,11 +17,12 @@ public class AstDecVar extends AstDec
 	public String type;
 	public String name;
 	public AstExp initialValue;
+	public int line;
 	
 	/******************/
 	/* CONSTRUCTOR(S) */
 	/******************/
-	public AstDecVar(String type, String name, AstExp initialValue)
+	public AstDecVar(String type, String name, AstExp initialValue, int line)
 	{
 		/******************************/
 		/* SET A UNIQUE SERIAL NUMBER */
@@ -28,6 +32,7 @@ public class AstDecVar extends AstDec
 		this.type = type;
 		this.name = name;
 		this.initialValue = initialValue;
+		this.line = line;
 	}
 
 	/************************************************************/
@@ -70,25 +75,76 @@ public class AstDecVar extends AstDec
 		t = SymbolTable.getInstance().find(type);
 		if (t == null)
 		{
-			System.out.format(">> ERROR [%d:%d] non existing type %s\n",2,2,type);
-			System.exit(0);
+			System.out.format(">> ERROR [%d:%d] non existing type %s\n",line,line,type);
+			throw new Error("ERROR(" + line + ")");
+		}
+
+		// check that type isn't void
+		if (type.equals( "void")) {
+			System.out.format(">> ERROR [%d:%d] cannot declare var of type void %s\n",line,line,type);
+			throw new Error("ERROR(" + line + ")");
 		}
 		
 		/**************************************/
-		/* [2] Check That Name does NOT exist */
+		/* [2] Check That Name does NOT exist in current scope */
 		/**************************************/
-		if (SymbolTable.getInstance().find(name) != null)
+		if (SymbolTable.getInstance().findInCurrentScope(name) != null)
 		{
-			System.out.format(">> ERROR [%d:%d] variable %s already exists in scope\n",2,2,name);				
+			System.out.format(">> ERROR [%d:%d] variable %s already exists in scope\n",line,line,name);
+			throw new Error("ERROR(" + line + ")");
 		}
 
 		/************************************************/
-		/* [3] Enter the Identifier to the Symbol Table */
+		/* [3] Check initial value type if present */
+		/************************************************/
+		if (initialValue != null) {
+			Type initType = initialValue.semantMe();
+			
+			// Check type compatibility
+			boolean typesMatch = false;
+			
+			if (t == initType) {
+				typesMatch = true;
+			} else if (t != null && initType != null && t.name.equals(initType.name)) {
+				typesMatch = true;
+			} else if (initType == TypeNil.getInstance() && t != null && (t.isClass() || t.isArray())) {
+				typesMatch = true;
+			} else if (t != null && initType != null && t.isArray() && initType.isArray()) {
+				// Both are arrays - check element types
+				TypeArray ta = (TypeArray) t;
+				TypeArray initArray = (TypeArray) initType;
+				if (ta.elementType == initArray.elementType ||
+				    (ta.elementType != null && initArray.elementType != null && 
+				     ta.elementType.name.equals(initArray.elementType.name))) {
+					typesMatch = true;
+				}
+			} else if (t != null && initType != null && t.isClass() && initType.isClass()) {
+				// Check if initType is a subclass of t
+				TypeClass tc = (TypeClass) t;
+				TypeClass initClass = (TypeClass) initType;
+				TypeClass current = initClass;
+				while (current != null) {
+					if (current.name.equals(tc.name)) {
+						typesMatch = true;
+						break;
+					}
+					current = current.father;
+				}
+			}
+			
+			if (!typesMatch) {
+				System.out.format(">> ERROR [%d:%d] type mismatch for variable initialization\n",line,line);
+				throw new Error("ERROR(" + line + ")");
+			}
+		}
+
+		/************************************************/
+		/* [4] Enter the Identifier to the Symbol Table */
 		/************************************************/
 		SymbolTable.getInstance().enter(name,t);
 
 		/************************************************************/
-		/* [4] Return value is irrelevant for variable declarations */
+		/* [5] Return value is irrelevant for variable declarations */
 		/************************************************************/
 		return null;		
 	}
@@ -103,5 +159,4 @@ public class AstDecVar extends AstDec
 		}
 		return null;
 	}
-	
 }
