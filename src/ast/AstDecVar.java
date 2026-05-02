@@ -3,6 +3,7 @@ package ast;
 import ir.Ir;
 import ir.IrCommandAllocate;
 import ir.IrCommandStore;
+import ir.IrVarTable;
 import temp.Temp;
 import types.*;
 import symboltable.*;
@@ -151,11 +152,12 @@ public class AstDecVar extends AstDec
 
 	public Temp irMe()
 	{
-		Ir.getInstance().AddIrCommand(new IrCommandAllocate(name));
+		String uniqueLabel = IrVarTable.getInstance().allocate(name);
+		Ir.getInstance().AddIrCommand(new IrCommandAllocate(uniqueLabel));
 
 		if (initialValue != null)
 		{
-			Ir.getInstance().AddIrCommand(new IrCommandStore(name,initialValue.irMe()));
+			Ir.getInstance().AddIrCommand(new IrCommandStore(uniqueLabel,initialValue.irMe()));
 		}
 		return null;
 	}

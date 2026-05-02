@@ -2,6 +2,7 @@ package ast;
 
 import ir.Ir;
 import ir.IrCommandStore;
+import ir.IrVarTable;
 import temp.Temp;
 import types.*;
 
@@ -162,7 +163,10 @@ public class AstStmtAssign extends AstStmt
 		Temp src = exp.irMe();
 		if (var instanceof AstExpVarSimple)
 		{
-			Ir.getInstance().AddIrCommand(new IrCommandStore(((AstExpVarSimple) var).name, src));
+			String varName = ((AstExpVarSimple) var).name;
+			String uniqueLabel = IrVarTable.getInstance().find(varName);
+			String label = (uniqueLabel != null) ? uniqueLabel : varName;
+			Ir.getInstance().AddIrCommand(new IrCommandStore(label, src));
 		}
 		// Array subscript and field access stores are not yet implemented in IR generation
 		return null;

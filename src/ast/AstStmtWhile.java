@@ -101,7 +101,9 @@ public class AstStmtWhile extends AstStmt
 		/*******************/
 		/* [5] body.IRme() */
 		/*******************/
+		IrVarTable.getInstance().beginScope();
 		body.irMe();
+		IrVarTable.getInstance().endScope();
 
 		/******************************/
 		/* [6] Jump to the loop entry */
