@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 /* PROJECT IMPORTS */
 /*******************/
 import regalloc.InterferenceGraph;
+import regalloc.InterferenceNode;
 import temp.*;
 
 public class MipsGenerator
@@ -21,6 +22,17 @@ public class MipsGenerator
 	/* The file writer ... */
 	/***********************/
 	private PrintWriter fileWriter;
+
+	/****************************************************/
+	/* Helper: safely get the register color for a Temp */
+	/****************************************************/
+	private int colorOf(Temp t)
+	{
+		if (t == null) return 0;
+		regalloc.InterferenceNode node = InterferenceGraph.getInstance().allNodes.get(t);
+		if (node == null) return 0;
+		return node.assignedColor;
+	}
 
 	/***********************/
 	/* The file writer ... */
@@ -33,7 +45,7 @@ public class MipsGenerator
 	}
 	public void printInt(Temp t)
 	{
-		int idx = InterferenceGraph.getInstance().allNodes.get(t).assignedColor;
+		int idx = colorOf(t);
 		// fileWriter.format("\taddi $a0,Temp_%d,0\n",idx);
 		fileWriter.format("\tmove $a0,$t%d\n",idx);
 		fileWriter.format("\tli $v0,1\n");
@@ -58,62 +70,62 @@ public class MipsGenerator
 	}
 	public void load(Temp dst, String varName)
 	{
-		int idxdst=InterferenceGraph.getInstance().allNodes.get(dst).assignedColor;
+		int idxdst=colorOf(dst);
 		fileWriter.format("\tlw $t%d,global_%s\n",idxdst,varName);
 	}
 	public void store(String varName, Temp src)
 	{
-		int idxsrc=InterferenceGraph.getInstance().allNodes.get(src).assignedColor;
+		int idxsrc=colorOf(src);
 		fileWriter.format("\tsw $t%d,global_%s\n",idxsrc,varName);
 	}
 	public void li(Temp t, int value)
 	{
-		int idx=InterferenceGraph.getInstance().allNodes.get(t).assignedColor;
+		int idx=colorOf(t);
 		fileWriter.format("\tli $t%d,%d\n",idx,value);
 	}
 	public void add(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
-		int dstidx=InterferenceGraph.getInstance().allNodes.get(dst).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
+		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tadd $t%d,$t%d,$t%d\n",dstidx,i1,i2);
 	}
 	public void mul(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
-		int dstidx=InterferenceGraph.getInstance().allNodes.get(dst).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
+		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tmul $t%d,$t%d,$t%d\n",dstidx,i1,i2);
 	}
 	public void div(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
-		int dstidx=InterferenceGraph.getInstance().allNodes.get(dst).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
+		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tdiv $t%d,$t%d,$t%d\n",dstidx,i1,i2);
 	}
 	public void sub(Temp dst, Temp oprnd1, Temp oprnd2)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
-		int dstidx=InterferenceGraph.getInstance().allNodes.get(dst).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
+		int dstidx=colorOf(dst);
 
 		fileWriter.format("\tsub $t%d,$t%d,$t%d\n",dstidx,i1,i2);
 	}
 	public void bgt(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 
 		fileWriter.format("\tbgt $t%d,$t%d,%s\n",i1,i2,label);
 	}
 	public void ble(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 
 		fileWriter.format("\tble $t%d,$t%d,%s\n",i1,i2,label);
 	}
@@ -135,36 +147,35 @@ public class MipsGenerator
 	}	
 	public void blt(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 		
 		fileWriter.format("\tblt $t%d,$t%d,%s\n",i1,i2,label);
 	}
 	public void bge(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 		
 		fileWriter.format("\tbge $t%d,$t%d,%s\n",i1,i2,label);
 	}
 	public void bne(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 		
 		fileWriter.format("\tbne $t%d,$t%d,%s\n",i1,i2,label);
 	}
 	public void beq(Temp oprnd1, Temp oprnd2, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-		int i2 =InterferenceGraph.getInstance().allNodes.get(oprnd2).assignedColor;
+		int i1 =colorOf(oprnd1);
+		int i2 =colorOf(oprnd2);
 		
 		fileWriter.format("\tbeq $t%d,$t%d,%s\n",i1,i2,label);
 	}
 	public void beqz(Temp oprnd1, String label)
 	{
-		int i1 =InterferenceGraph.getInstance().allNodes.get(oprnd1).assignedColor;
-				
+		int i1 =colorOf(oprnd1);
 		fileWriter.format("\tbeq $t%d,$zero,%s\n",i1,label);
 	}
 	

@@ -161,10 +161,11 @@ public class AstStmtAssign extends AstStmt
 	public Temp irMe()
 	{
 		Temp src = exp.irMe();
-		Ir.
-				getInstance().
-				AddIrCommand(new IrCommandStore(((AstExpVarSimple) var).name,src));
-
+		if (var instanceof AstExpVarSimple)
+		{
+			Ir.getInstance().AddIrCommand(new IrCommandStore(((AstExpVarSimple) var).name, src));
+		}
+		// Array subscript and field access stores are not yet implemented in IR generation
 		return null;
 	}
 }

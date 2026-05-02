@@ -13,7 +13,9 @@ public class InterferenceGraph {
         this.allNodes = new HashMap<>();
 
         for (CommandNode node : CFG.allNodes){
-            for (Temp currTemp : node.in) {this.allNodes.putIfAbsent(currTemp, new InterferenceNode(currTemp));}
+            for (Temp currTemp : node.in) {
+                if (currTemp != null) this.allNodes.putIfAbsent(currTemp, new InterferenceNode(currTemp));
+            }
 
             Temp defTemp = node.nodeCommand.getDefinedTemp();
             if (defTemp != null) {
@@ -26,24 +28,27 @@ public class InterferenceGraph {
             // Add pairwise edges for all temps live at entry of this node
             List<Temp> liveInTemps = new ArrayList<>(currNode.in);
             for (int i = 0; i < liveInTemps.size(); i++) {
+                Temp t1 = liveInTemps.get(i);
+                if (t1 == null) continue;
                 for (int j = i + 1; j < liveInTemps.size(); j++) {
-                    Temp t1 = liveInTemps.get(i);
                     Temp t2 = liveInTemps.get(j);
+                    if (t2 == null) continue;
                     InterferenceNode node1 = this.allNodes.get(t1);
                     InterferenceNode node2 = this.allNodes.get(t2);
-                    // Draw the bidirectional edge
-                    node1.addEdge(node2);
+                    if (node1 != null && node2 != null) {
+                        node1.addEdge(node2);
+                    }
                 }
             }
 
             // Add pairwise edges for all temps live at exit of this node.
-            // This is needed to catch pairs that are simultaneously live at a branch
-            // point but end up in different successors' in-sets.
             List<Temp> liveOutTemps = new ArrayList<>(currNode.out);
             for (int i = 0; i < liveOutTemps.size(); i++) {
+                Temp t1 = liveOutTemps.get(i);
+                if (t1 == null) continue;
                 for (int j = i + 1; j < liveOutTemps.size(); j++) {
-                    Temp t1 = liveOutTemps.get(i);
                     Temp t2 = liveOutTemps.get(j);
+                    if (t2 == null) continue;
                     InterferenceNode node1 = this.allNodes.get(t1);
                     InterferenceNode node2 = this.allNodes.get(t2);
                     if (node1 != null && node2 != null) {
@@ -59,11 +64,10 @@ public class InterferenceGraph {
             if (def != null) {
                 InterferenceNode defNode = this.allNodes.get(def);
                 for (Temp t : currNode.out) {
-                    if (!t.equals(def)) {
-                        InterferenceNode tNode = this.allNodes.get(t);
-                        if (tNode != null) {
-                            defNode.addEdge(tNode);
-                        }
+                    if (t == null || t.equals(def)) continue;
+                    InterferenceNode tNode = this.allNodes.get(t);
+                    if (tNode != null && defNode != null) {
+                        defNode.addEdge(tNode);
                     }
                 }
             }

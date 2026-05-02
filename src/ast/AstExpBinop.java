@@ -72,14 +72,11 @@ public class AstExpBinop extends AstExp
 		if (op == 4) {sop = "<";}
 		if (op == 6) {sop = "=";}
 
-		String rt = semantMe().name;
-
-
 		/**********************************/
 		/* AST NODE TYPE = AST BINOP EXP */
 		/*********************************/
 		System.out.print("AST NODE BINOP EXP\n");
-		System.out.format("BINOP EXP(%s, %s)\n",sop, rt);
+		System.out.format("BINOP EXP(%s)\n",sop);
 
 		/**************************************/
 		/* RECURSIVELY PRINT left + right ... */
@@ -92,7 +89,7 @@ public class AstExpBinop extends AstExp
 		/***************************************/
 		AstGraphviz.getInstance().logNode(
                 serialNumber,
-			String.format("BINOP(%s, %s)",sop,rt));
+			String.format("BINOP(%s)",sop));
 		
 		/****************************************/
 		/* PRINT Edges to AST GRAPHVIZ DOT file */

@@ -71,6 +71,7 @@ public class Main
 
 			for (Temp t : InterferenceGraph.getInstance().allNodes.keySet())
 			{
+				if (t == null) continue;
 				System.out.println("Temp: " + t.getSerialNumber());
 				System.out.println("is colored: " + InterferenceGraph.getInstance().allNodes.get(t).assignedColor);
 			}

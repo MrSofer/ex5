@@ -4,6 +4,7 @@ import ir.Ir;
 import ir.IrCommandPrintInt;
 import symboltable.SymbolTable;
 import temp.Temp;
+import temp.TempFactory;
 import types.*;
 
 public class AstExpCall extends AstExp
@@ -172,6 +173,7 @@ public class AstExpCall extends AstExp
 
 		Ir.getInstance().AddIrCommand(new IrCommandPrintInt(t));
 
-		return null;
+		Temp result = temp.TempFactory.getInstance().getFreshTemp();
+		return result;
 	}
 }

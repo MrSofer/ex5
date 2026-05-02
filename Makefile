@@ -103,7 +103,7 @@ all:
 	@echo "*                                                      *"
 	@echo "********************************************************"
 	mkdir -p ${BIN_DIR}
-	javac --enable-preview --release 17 -cp ${EXTERNAL_JAR_FILES} -d ${BIN_DIR} ${SRC_FILES}
+	javac -cp ${EXTERNAL_JAR_FILES} -d ${BIN_DIR} ${SRC_FILES}
 	@echo "\n"
 	@echo "***********************************************************"
 	@echo "*                                                         *"
