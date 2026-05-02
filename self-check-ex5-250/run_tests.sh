@@ -10,7 +10,7 @@ MIPS_FILE="$OUTPUT_DIR/MIPS.txt"
 MIPS_OUTPUT_FILE="$OUTPUT_DIR/MIPS_OUTPUT.txt"
 PASS=0; FAIL=0; FAILED=""
 mkdir -p "$OUTPUT_DIR"
-for test_file in $(ls "$TESTS_DIR"/TEST_*.txt | sort -t_ -k2 -n | head -n 1); do
+for test_file in $(ls "$TESTS_DIR"/TEST_*.txt | sort -t_ -k2 -n); do
     name=$(basename "$test_file" .txt)
     expected_file="$EXPECTED_DIR/${name}_Expected_Output.txt"
     [ ! -f "$expected_file" ] && { FAIL=$((FAIL+1)); FAILED="$FAILED\n  $name: Missing expected"; continue; }
