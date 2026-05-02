@@ -24,7 +24,11 @@ public class RegisterAllocator {
         // 3. Build Interference Graph
             InterferenceGraph interferenceGraph = new InterferenceGraph(CFG);
         // 4. Simplify and Color the graph (using $t0 - $t9)
-            boolean didColoringSucceed = interferenceGraph.ColorGraph();
+        if (!interferenceGraph.ColorGraph()) {
+            System.out.println("Register Allocation Failed");
+            System.exit(0);
+        }
+        System.out.println("colored graph!!");
         // 5. Update physicalRegister field in Temp objects
 
         return true;
