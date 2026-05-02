@@ -49,7 +49,7 @@ CUP_FLAGS =                                \
 # DEFINITIONS :: PARSER #
 #########################
 INPUT    = ${INPUT_DIR}/Input.txt
-OUTPUT   = ${OUTPUT_DIR}/mips.txt
+OUTPUT   = ${OUTPUT_DIR}/MIPS.txt
 
 ##########
 # TARGET #
@@ -132,4 +132,4 @@ everything: all
 	@echo "*                                      *"
 	@echo "*                                      *"
 	@echo "****************************************"
-	spim -f ${OUTPUT_DIR}/mips.txt > ${OUTPUT_DIR}/MIPS_OUTPUT.txt
+	spim -file ${OUTPUT_DIR}/MIPS.txt > ${OUTPUT_DIR}/MIPS_OUTPUT.txt
